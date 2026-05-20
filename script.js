@@ -197,7 +197,7 @@
   if (projectsGrid) {
     const renderProjects = (list) => {
       projectsGrid.innerHTML = list.map((p) => `
-        <a href="project-detail?id=${p.id}" class="card project-card reveal" style="text-decoration: none; color: inherit; display: block;">
+        <a href="project-detail.html?id=${p.id}" class="card project-card reveal" style="text-decoration: none; color: inherit; display: block;">
           <div class="card-media">${p.image ? `<img src="${p.image}" alt="${p.title}" loading="lazy" />` : ''}</div>
           <div class="card-body">
             ${p.tag ? `<span class="card-tag">${p.tag}</span>` : ''}
@@ -376,7 +376,7 @@
         const isFree = !r.price || r.price === 0;
         const cta = dict['projects.link'] || (lang === 'fr' ? 'En savoir plus →' : 'Learn more →');
         return `
-          <a href="market-detail?id=${r.id}" class="card resource-card reveal is-visible" style="text-decoration: none; color: inherit; display: block;">
+          <a href="market-detail.html?id=${r.id}" class="card resource-card reveal is-visible" style="text-decoration: none; color: inherit; display: block;">
             <div class="card-media">${r.image ? `<img src="${r.image}" alt="${r.title}" loading="lazy" />` : ''}</div>
             <div class="card-body">
               <div class="resource-meta">
@@ -756,10 +756,6 @@
               }
             };
             btn.addEventListener('click', shareProject);
-            btn.addEventListener('touchend', (e) => {
-              e.preventDefault();
-              shareProject();
-            });
         }
       }
 

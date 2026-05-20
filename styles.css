@@ -497,10 +497,18 @@ a { color: inherit; text-decoration: none; }
 .btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   padding: 12px 24px;
   border-radius: 0;
   font-size: 15px;
   font-weight: 500;
+  font-family: inherit;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
   transition: all var(--transition);
   border: 1px solid transparent;
 }
@@ -509,6 +517,17 @@ a { color: inherit; text-decoration: none; }
   background: var(--accent);
   color: var(--accent-contrast);
   vertical-align: middle;
+}
+
+.btn-ghost {
+  border: 1px solid var(--border);
+  color: var(--text);
+  background: transparent;
+}
+
+.btn-ghost:hover {
+  background: var(--bg-alt);
+  border-color: var(--text);
 }
 
 /* CTA container flex alignment */
