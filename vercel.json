@@ -1,0 +1,25 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/project-detail", "destination": "/project-detail.html" },
+    { "source": "/market-detail", "destination": "/market-detail.html" },
+    { "source": "/projects", "destination": "/projects.html" },
+    { "source": "/market", "destination": "/market.html" },
+    { "source": "/experience", "destination": "/experience.html" },
+    { "source": "/contact", "destination": "/contact.html" },
+    { "source": "/about", "destination": "/about.html" },
+    { "source": "/poubelle", "destination": "/poubelle.html" },
+    { "source": "/admin", "destination": "/admin.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-XSS-Protection", "value": "1; mode=block" }
+      ]
+    }
+  ]
+}
