@@ -81,6 +81,10 @@
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
             Poubelle
           </button>
+          <button class="sidebar-link" data-tab="deliveries">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+            Collectes
+          </button>
           <div class="sidebar-divider"></div>
           <button class="sidebar-link" data-tab="settings">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -451,6 +455,75 @@
           </div>
         </section>
 
+        <!-- ═══════════ COLLECTES ═══════════ -->
+        <section class="admin-panel" data-panel="deliveries">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Espace Collectes Clients</h2>
+              <p class="panel-subtitle">Gérez les livraisons et les fichiers téléchargeables par vos clients via des codes secrets.</p>
+            </div>
+          </div>
+
+          <form id="delivery-form" class="admin-form admin-card">
+            <h3 class="card-section-title">
+              <span id="delivery-form-title">Créer un espace client</span>
+            </h3>
+            <input type="hidden" id="del-id" />
+            <input type="hidden" id="del-date" />
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="del-code">Code secret (Clé de licence)</label>
+                <div style="display: flex; gap: 8px;">
+                  <input type="text" id="del-code" placeholder="TSC-A1B2-C3D4" required style="text-transform: uppercase; flex: 1;" />
+                  <button type="button" id="btn-generate-code" class="btn btn-ghost" style="padding: 10px 14px; font-size: 13px; height: 100%; border: 1px solid var(--border); border-radius: 0;">Générer</button>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="del-client">Nom du Client</label>
+                <input type="text" id="del-client" placeholder="Moke Patrick Armel" required />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="del-notes">Notes / Message de remerciement</label>
+              <textarea id="del-notes" rows="3" placeholder="Merci pour votre confiance ! Voici vos fichiers..."></textarea>
+            </div>
+
+            <h4 style="font-size: 13px; font-weight: 600; color: var(--text-muted); margin: 16px 0 8px;">Fichier 1</h4>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="del-f1-name">Nom du fichier 1</label>
+                <input type="text" id="del-f1-name" placeholder="thesouscote_identity_pack.zip" />
+              </div>
+              <div class="form-group">
+                <label for="del-f1-url">URL / Lien du fichier 1 (ou zip dans assets/deliveries/)</label>
+                <input type="text" id="del-f1-url" placeholder="assets/deliveries/thesouscote_identity_pack.zip" />
+              </div>
+            </div>
+
+            <h4 style="font-size: 13px; font-weight: 600; color: var(--text-muted); margin: 16px 0 8px;">Fichier 2 (Optionnel)</h4>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="del-f2-name">Nom du fichier 2</label>
+                <input type="text" id="del-f2-name" placeholder="thesouscote_guidelines.pdf" />
+              </div>
+              <div class="form-group">
+                <label for="del-f2-url">URL / Lien du fichier 2</label>
+                <input type="text" id="del-f2-url" placeholder="assets/deliveries/thesouscote_guidelines.pdf" />
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary btn-sm" id="delivery-submit">Enregistrer la livraison</button>
+              <button type="button" class="btn btn-ghost btn-sm" id="delivery-reset">Annuler</button>
+            </div>
+          </form>
+
+          <div class="admin-card">
+            <h3 class="card-section-title">Espaces ouverts · <span id="delivery-count">0</span></h3>
+            <ul id="delivery-list" class="admin-list"></ul>
+          </div>
+        </section>
+
         <!-- ═══════════ PARAMÈTRES ═══════════ -->
         <section class="admin-panel" data-panel="settings">
           <div class="panel-header">
@@ -513,7 +586,11 @@
   <!-- Toast notification -->
   <div id="toast" class="admin-toast" aria-live="polite"></div>
 
-  <script src="script.js" defer></script>
-  <script src="admin.js" defer></script>
+  <!-- Supabase Integration -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+
+  <script src="script.js?v=2" defer></script>
+  <script src="admin.js?v=2" defer></script>
 </body>
 </html>

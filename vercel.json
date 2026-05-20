@@ -10,6 +10,7 @@
     { "source": "/contact", "destination": "/contact.html" },
     { "source": "/about", "destination": "/about.html" },
     { "source": "/poubelle", "destination": "/poubelle.html" },
+    { "source": "/collecte", "destination": "/collecte.html" },
     { "source": "/admin", "destination": "/admin.html" }
   ],
   "headers": [

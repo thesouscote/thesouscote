@@ -26,11 +26,58 @@
     t._tid = setTimeout(() => t.classList.remove('is-visible'), 2600);
   }
 
+  // ---------- Intercepteur Supabase CMS (Sauvegarde Automatique) ----------
+  const originalSetItem = localStorage.setItem;
+  localStorage.setItem = function (key, value) {
+    originalSetItem.apply(this, arguments);
+    
+    const CMS_KEYS = [
+      'projects',
+      'admin_about',
+      'admin_experience',
+      'admin_contact',
+      'admin_resources',
+      'admin_trash',
+      'admin_site_meta',
+      'admin_deliveries'
+    ];
+    
+    if (supabase && CMS_KEYS.includes(key)) {
+      try {
+        const parsed = JSON.parse(value);
+        supabase.from('portfolio_data').upsert({ key: key, value: parsed })
+          .then(({ error }) => {
+            if (error) console.error(`Erreur de synchronisation Cloud pour [${key}] :`, error);
+            else console.log(`[Supabase Cloud] Synchronisation réussie pour [${key}]`);
+          });
+      } catch (e) {
+        console.error("Erreur de parsing lors de l'envoi cloud :", e);
+      }
+    }
+  };
+
+  async function loadAllCloudData() {
+    if (!supabase) return;
+    try {
+      const { data, error } = await supabase.from('portfolio_data').select('*');
+      if (!error && data) {
+        data.forEach(row => {
+          // Utilise l'original originalSetItem pour éviter de réenclencher l'intercepteur en boucle
+          originalSetItem.call(localStorage, row.key, JSON.stringify(row.value));
+        });
+        console.log("[Supabase Cloud] Toutes les données du portfolio ont été synchronisées localement !");
+      }
+    } catch (e) {
+      console.error("Erreur de chargement initial Supabase Cloud :", e);
+    }
+  }
+
   // ---------- Gate ----------
-  function unlock() {
+  async function unlock() {
     sessionStorage.setItem('admin-ok', '1');
     if (gate) gate.style.display = 'none';
     if (app) app.hidden = false;
+    await loadAllCloudData(); // Synchronise d'abord tout le Cloud Supabase
     init();
   }
   function tryUnlock() {
@@ -66,6 +113,7 @@
     initContact();
     initResources();
     initTrash();
+    initDeliveries();
     initSettings();
   }
 
@@ -928,7 +976,7 @@
 
     document.getElementById('export-all-btn')?.addEventListener('click', () => {
       const allData = {};
-      ['projects','admin_about','admin_experience','admin_contact','admin_resources','admin_trash','admin_site_meta'].forEach(k => {
+      ['projects','admin_about','admin_experience','admin_contact','admin_resources','admin_trash','admin_site_meta','admin_deliveries'].forEach(k => {
         const v = localStorage.getItem(k);
         if (v) { try { allData[k] = JSON.parse(v); } catch {} }
       });
@@ -954,6 +1002,243 @@
       };
       reader.readAsText(file);
     });
+  }
+
+  // ============================================================
+  // COLLECTES (LIVRAISONS CLIENTS)
+  // ============================================================
+  function initDeliveries() {
+    const form = document.getElementById('delivery-form');
+    if (!form) return;
+    const list = document.getElementById('delivery-list');
+    const count = document.getElementById('delivery-count');
+    const fId = document.getElementById('del-id');
+    const fCode = document.getElementById('del-code');
+    const fClient = document.getElementById('del-client');
+    const fDate = document.getElementById('del-date');
+    const fNotes = document.getElementById('del-notes');
+    const fF1Name = document.getElementById('del-f1-name');
+    const fF1Url = document.getElementById('del-f1-url');
+    const fF2Name = document.getElementById('del-f2-name');
+    const fF2Url = document.getElementById('del-f2-url');
+    const fSubmit = document.getElementById('delivery-submit');
+    const fReset = document.getElementById('delivery-reset');
+    const formTitle = document.getElementById('delivery-form-title');
+    const btnGen = document.getElementById('btn-generate-code');
+
+    const KEY = 'admin_deliveries';
+    let deliveries = [];
+
+    if (btnGen) {
+      btnGen.addEventListener('click', () => {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        const genPart = (len) => {
+          let r = '';
+          for (let i = 0; i < len; i++) {
+            r += chars.charAt(Math.floor(Math.random() * chars.length));
+          }
+          return r;
+        };
+        const key = `${genPart(4)}-${genPart(4)}-${genPart(4)}`;
+        fCode.value = key;
+        toast('Clé de licence générée !');
+      });
+    }
+
+    function getTodayFormatted() {
+      const options = { year: 'numeric', month: 'long', day: 'numeric' };
+      return new Date().toLocaleDateString('fr-FR', options);
+    }
+
+    async function syncWithSupabase(item, action) {
+      if (!supabase) return;
+      try {
+        if (action === 'delete') {
+          await supabase.from('deliveries').delete().eq('id', item.id);
+        } else if (action === 'upsert') {
+          await supabase.from('deliveries').upsert({
+            id: item.id,
+            code: item.code,
+            client: item.client,
+            date: item.date,
+            notes: item.notes,
+            files: item.files
+          });
+        }
+      } catch (err) {
+        console.error("Erreur de synchronisation Supabase :", err);
+      }
+    }
+
+    function saveLocalStorageOnly() {
+      localStorage.setItem(KEY, JSON.stringify({ deliveries }));
+      render();
+    }
+
+    async function load() {
+      // 1. Charge d'abord le stockage local (immédiat)
+      const local = localStorage.getItem(KEY);
+      if (local) {
+        try { deliveries = JSON.parse(local).deliveries || []; }
+        catch { deliveries = []; }
+      } else {
+        // Fallback par défaut avec notre exemple
+        deliveries = [
+          {
+            id: 'd1',
+            code: 'MOKE2026',
+            client: "Moke Patrick Armel",
+            date: "20 mai 2026",
+            notes: "Merci pour votre confiance ! Voici les fichiers finaux pour la refonte de l'identité visuelle de thesouscote.",
+            files: [
+              { name: "thesouscote_identity_pack.zip", size: "12.4 Mo", url: "assets/deliveries/thesouscote_identity_pack.zip" },
+              { name: "thesouscote_guidelines.pdf", size: "3.2 Mo", url: "assets/deliveries/thesouscote_guidelines.pdf" }
+            ]
+          }
+        ];
+        saveLocalStorageOnly();
+      }
+      resetForm(); // Applique la pré-saisie de la date du jour au chargement
+      render();
+
+      // 2. Synchronise avec Supabase (Cloud) si disponible
+      if (supabase) {
+        try {
+          const { data, error } = await supabase.from('deliveries').select('*');
+          if (!error && data) {
+            deliveries = data;
+            saveLocalStorageOnly();
+          }
+        } catch (err) {
+          console.error("Erreur de récupération Supabase :", err);
+        }
+      }
+    }
+
+    function render() {
+      count.textContent = deliveries.length;
+      if (!deliveries.length) {
+        list.innerHTML = '<li class="admin-empty">Aucune livraison enregistrée.</li>';
+        return;
+      }
+      list.innerHTML = deliveries.map(d => `
+        <li class="admin-item">
+          <div class="admin-item-body">
+            <div class="admin-item-title" style="font-size: 15px; font-weight: 700; margin-bottom: 8px;">
+              ${esc(d.client)}
+            </div>
+            <div style="margin-bottom: 12px;">
+              <span class="sidebar-badge" style="background:var(--accent); color:var(--accent-contrast); font-size:11px; padding: 4px 8px; display: inline-block; letter-spacing: 0.05em; font-weight: 600;">
+                CODE: ${esc(d.code)}
+              </span>
+            </div>
+            <div class="admin-item-desc" style="font-size: 12px; color: var(--text-muted); line-height: 1.4;">
+              Livré le : ${esc(d.date)}<br>
+              ${d.files ? d.files.length : 0} fichier(s) prêt(s)
+            </div>
+          </div>
+          <div class="admin-item-actions">
+            <button class="btn btn-ghost btn-xs edit-del" data-id="${d.id}">Modifier</button>
+            <button class="btn btn-ghost btn-xs danger del-del" data-id="${d.id}">Supprimer</button>
+          </div>
+        </li>
+      `).join('');
+
+      list.querySelectorAll('.edit-del').forEach(b => {
+        b.addEventListener('click', () => editD(b.dataset.id));
+      });
+      list.querySelectorAll('.del-del').forEach(b => {
+        b.addEventListener('click', () => delD(b.dataset.id));
+      });
+    }
+
+    function editD(id) {
+      const d = deliveries.find(x => x.id === id);
+      if (!d) return;
+      fId.value = d.id;
+      fCode.value = d.code || '';
+      fClient.value = d.client || '';
+      fDate.value = d.date || '';
+      fNotes.value = d.notes || '';
+      
+      // Load file 1
+      fF1Name.value = d.files?.[0]?.name || '';
+      fF1Url.value = d.files?.[0]?.url || '';
+      // Load file 2
+      fF2Name.value = d.files?.[1]?.name || '';
+      fF2Url.value = d.files?.[1]?.url || '';
+
+      formTitle.textContent = 'Modifier la livraison';
+      fSubmit.textContent = 'Mettre à jour';
+    }
+
+    function delD(id) {
+      if (!confirm('Supprimer cette livraison ?')) return;
+      const target = deliveries.find(x => x.id === id);
+      deliveries = deliveries.filter(x => x.id !== id);
+      saveLocalStorageOnly();
+      if (target) syncWithSupabase(target, 'delete');
+      toast('Livraison supprimée');
+    }
+
+    function resetForm() {
+      form.reset();
+      fId.value = '';
+      fDate.value = getTodayFormatted(); // Remplit automatiquement la date du jour
+      formTitle.textContent = 'Créer un espace client';
+      fSubmit.textContent = 'Enregistrer la livraison';
+    }
+
+    fReset.addEventListener('click', resetForm);
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      try {
+        const codeValue = fCode.value.trim().toUpperCase();
+        
+        // Validation doublon de code
+        const duplicate = deliveries.find(x => x.code === codeValue && x.id !== fId.value);
+        if (duplicate) {
+          alert("Ce code secret est déjà attribué à un autre client ! Veuillez en choisir un autre.");
+          return;
+        }
+
+        const files = [];
+        if (fF1Name.value.trim()) {
+          files.push({ name: fF1Name.value.trim(), size: "Prêt", url: fF1Url.value.trim() || "#" });
+        }
+        if (fF2Name.value.trim()) {
+          files.push({ name: fF2Name.value.trim(), size: "Prêt", url: fF2Url.value.trim() || "#" });
+        }
+
+        const data = {
+          id: fId.value || 'del_' + Date.now(),
+          code: codeValue,
+          client: fClient.value.trim(),
+          date: fDate.value.trim(),
+          notes: fNotes.value.trim(),
+          files: files
+        };
+
+        const isUpdate = !!fId.value;
+        if (isUpdate) {
+          const idx = deliveries.findIndex(x => x.id === fId.value);
+          if (idx >= 0) deliveries[idx] = data;
+          toast('Livraison mise à jour');
+        } else {
+          deliveries.unshift(data);
+          toast('Livraison ajoutée');
+        }
+        saveLocalStorageOnly();
+        syncWithSupabase(data, 'upsert');
+        resetForm();
+      } catch (err) {
+        console.error("Error saving delivery:", err);
+        alert("Erreur lors de l'enregistrement : " + err.message);
+      }
+    });
+
+    load();
   }
 
   // ---------- Paste buttons helper ----------

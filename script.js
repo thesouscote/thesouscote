@@ -722,7 +722,7 @@
               if (navigator.clipboard && navigator.clipboard.writeText) {
                 try {
                   await navigator.clipboard.writeText(window.location.href);
-                  alert(`${lang === 'fr' ? 'Lien copié !' : 'Link copied!'}`);
+                  alert(`${lang === 'fr' ? "Pourquoi tu n'as plus partagé ?" : 'Why did you stop sharing?'}`);
                 } catch (err) {
                   fallbackCopy();
                 }
@@ -741,7 +741,7 @@
                 textarea.select();
                 try {
                   document.execCommand('copy');
-                  alert(`${lang === 'fr' ? 'Lien copié !' : 'Link copied!'}`);
+                  alert(`${lang === 'fr' ? "Pourquoi tu n'as plus partagé ?" : 'Why did you stop sharing?'}`);
                 } catch (e) {
                   // If execCommand fails, fall back to prompt
                   const msg = `${lang === 'fr' ? 'Copiez le lien suivant:' : 'Copy the following link:'}\n${window.location.href}`;
@@ -973,4 +973,170 @@
         .catch(() => { resTitle.textContent = 'Erreur de chargement'; });
     }
   }
+
+  // ============================================================
+  // Logique du Point de Collecte (Espace Clients)
+  // ============================================================
+  const collecteForm = document.getElementById('collecte-form');
+  if (collecteForm) {
+    // Liste de démonstration par défaut
+    const DEMO_DELIVERIES = {
+      'MOKE2026': {
+        client: "Moke Patrick Armel",
+        date: "20 mai 2026",
+        notes: "Merci pour votre confiance ! Voici les fichiers finaux pour la refonte de l'identité visuelle de thesouscote. Tous les formats vectoriels (SVG, PDF) ainsi que les versions PNG pour le web sont inclus dans l'archive ci-dessous.",
+        files: [
+          { name: "thesouscote_identity_pack.zip", size: "12.4 Mo", url: "assets/deliveries/thesouscote_identity_pack.zip" },
+          { name: "thesouscote_guidelines.pdf", size: "3.2 Mo", url: "assets/deliveries/thesouscote_guidelines.pdf" }
+        ]
+      },
+      'LOGO-GOLD': {
+        client: "Studio d'Art Paris",
+        date: "18 mai 2026",
+        notes: "Voici vos variantes de logo validées. Exportées en CMJN pour l'impression haute qualité et en RVB optimisé pour vos profils et bannières de réseaux sociaux.",
+        files: [
+          { name: "logo_studio_art_final.zip", size: "8.1 Mo", url: "assets/deliveries/logo_studio_art_final.zip" }
+        ]
+      }
+    };
+
+    collecteForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const codeInput = document.getElementById('collecte-code');
+      const statusEl = document.getElementById('collecte-status');
+      const deliveryBox = document.getElementById('delivery-box');
+      
+      const code = codeInput.value.trim().toUpperCase();
+      statusEl.textContent = '';
+      deliveryBox.style.display = 'none';
+
+      if (!code) {
+        statusEl.textContent = "Veuillez entrer un code de retrait.";
+        return;
+      }
+
+      // Indique au client que la recherche est en cours (effet premium)
+      statusEl.textContent = "Recherche en cours...";
+      statusEl.style.color = "var(--text-muted)";
+
+      // 1. Charger DYNAMIQUEMENT depuis Supabase (Cloud) ou localStorage
+      let DELIVERIES = {};
+      let loadedFromCloud = false;
+
+      if (supabase) {
+        try {
+          const { data, error } = await supabase.from('deliveries').select('*');
+          if (!error && data) {
+            data.forEach(d => {
+              DELIVERIES[d.code.toUpperCase()] = d;
+            });
+            loadedFromCloud = true;
+          }
+        } catch (err) {
+          console.error("Erreur de recherche Supabase, repli sur LocalStorage...", err);
+        }
+      }
+
+      // Repli sur le stockage local si Supabase non connecté ou en erreur
+      if (!loadedFromCloud) {
+        const localDel = localStorage.getItem('admin_deliveries');
+        if (localDel) {
+          try {
+            const parsed = JSON.parse(localDel).deliveries || [];
+            parsed.forEach(d => {
+              DELIVERIES[d.code.toUpperCase()] = d;
+            });
+          } catch { /* ignore */ }
+        }
+      }
+
+      // 2. Si le stockage complet est vide, utiliser les démos
+      if (Object.keys(DELIVERIES).length === 0) {
+        DELIVERIES = DEMO_DELIVERIES;
+      }
+
+      // Nettoie le message de recherche
+      statusEl.textContent = "";
+      statusEl.style.color = "#e0245e";
+
+      console.log("Recherche du code :", code, "parmi les codes chargés :", Object.keys(DELIVERIES));
+
+      const delivery = DELIVERIES[code];
+      if (delivery) {
+        document.getElementById('delivery-client').textContent = "Créations : " + delivery.client;
+        document.getElementById('delivery-date').textContent = "Livré le " + delivery.date;
+        document.getElementById('delivery-notes').textContent = delivery.notes;
+
+        const filesContainer = document.getElementById('delivery-files');
+        filesContainer.innerHTML = (delivery.files || []).map(file => `
+          <li class="delivery-file-item">
+            <div>
+              <div class="delivery-file-name">${file.name}</div>
+              <div class="delivery-file-size">${file.size || 'Prêt'}</div>
+            </div>
+            <a href="${file.url}" download class="btn btn-primary" style="padding: 6px 14px; font-size: 13px;">Télécharger</a>
+          </li>
+        `).join('');
+
+        deliveryBox.style.display = 'block';
+        codeInput.value = ''; // Reset input
+      } else {
+        statusEl.textContent = "Code incorrect ou expiré. Veuillez vérifier votre code de livraison.";
+      }
+    });
+  }
+
+  // ============================================================
+  // Synchronisation Cloud Supabase en arrière-plan (CMS Global)
+  // ============================================================
+  async function syncCloudDataAndRefresh() {
+    if (!supabase) return;
+    try {
+      const { data, error } = await supabase.from('portfolio_data').select('*');
+      if (!error && data) {
+        let hasChanges = false;
+        data.forEach(row => {
+          const localVal = localStorage.getItem(row.key);
+          const newValString = JSON.stringify(row.value);
+          if (localVal !== newValString) {
+            localStorage.setItem(row.key, newValString);
+            hasChanges = true;
+          }
+        });
+        
+        // S'il y a des changements, on recharge pour afficher les nouveaux contenus du cloud
+        if (hasChanges) {
+          console.log("[Supabase Cloud] Modifications détectées ! Actualisation de la page...");
+          location.reload();
+        }
+      }
+    } catch (e) {
+      console.error("[Supabase Cloud] Erreur d'actualisation en arrière-plan :", e);
+    }
+  }
+
+  // Lance la synchronisation asynchrone non-bloquante
+  syncCloudDataAndRefresh();
+
+  // ============================================================
+  // Bouton de retour en haut (Back to Top)
+  // ============================================================
+  const backToTop = document.createElement('button');
+  backToTop.id = 'back-to-top';
+  backToTop.className = 'btn-back-to-top';
+  backToTop.setAttribute('aria-label', 'Remonter en haut');
+  backToTop.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>`;
+  document.body.appendChild(backToTop);
+
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 300) {
+      backToTop.classList.add('is-visible');
+    } else {
+      backToTop.classList.remove('is-visible');
+    }
+  });
+
+  backToTop.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
 })();
