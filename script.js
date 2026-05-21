@@ -368,7 +368,7 @@
     };
 
     const renderResources = () => {
-    t filtered = allResources.filter((r) => {
+      const filtered = allResources.filter((r) => {
         if (activeFilter === 'all') return true;
         if (activeFilter === 'free') return !r.price || r.price === 0;
         return r.category === activeFilter;
@@ -1144,7 +1144,7 @@
   // Synchronisation Cloud Supabase en arrière-plan (CMS Global)
   // ============================================================
   async function syncCloudDataAndRefresh() {
-    if (!supabase) return;
+    if (typeof supabase === 'undefined' || !supabase) return;
     try {
       const { data, error } = await supabase.from('portfolio_data').select('*');
       if (!error && data) {
