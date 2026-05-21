@@ -2,11 +2,10 @@
 // Admin — gestion complète du site
 // ============================================================
 (function () {
-  const PASSWORD = 'Bonjour2026@';
-
   const gate = document.getElementById('gate');
   const app = document.getElementById('admin-app');
-  const gateInput = document.getElementById('gate-input');
+  const gateEmail = document.getElementById('gate-email');
+  const gatePassword = document.getElementById('gate-password');
   const gateBtn = document.getElementById('gate-btn');
   const gateError = document.getElementById('gate-error');
 
@@ -46,7 +45,7 @@
     if (typeof db !== 'undefined' && db && CMS_KEYS.includes(key) && typeof value === 'string' && value.length > 0) {
       try {
         const parsed = JSON.parse(value);
-        db.collection('portfolio_data').doc(key).set({ value: parsed })
+        db.ref('portfolio_data/' + key).set({ value: parsed })
           .then(() => {
             console.log(`[Firebase Cloud] Synchronisation réussie pour [${key}]`);
           })
@@ -62,11 +61,11 @@
   async function loadAllCloudData() {
     if (typeof db === 'undefined' || !db) return;
     try {
-      const snapshot = await db.collection('portfolio_data').get();
-      if (!snapshot.empty) {
-        snapshot.forEach(doc => {
-          const key = doc.id;
-          const value = doc.data().value;
+      const snapshot = await db.ref('portfolio_data').once('value');
+      const dataVal = snapshot.val();
+      if (dataVal) {
+        Object.keys(dataVal).forEach(key => {
+          const value = dataVal[key].value;
           // Utilise l'original originalSetItem pour éviter de réenclencher l'intercepteur en boucle
           originalSetItem.call(localStorage, key, JSON.stringify(value));
         });
@@ -80,44 +79,98 @@
   // ---------- Gate ----------
   async function unlock() {
     sessionStorage.setItem('admin-ok', '1');
-    const syncLoader = document.getElementById('cloud-sync-loader');
+    if (gate) gate.style.display = 'none';
     
-    // Si l'utilisateur est déjà connecté, on affiche un loader minimal de synchro cloud
-    if (gate && gate.style.display === 'none') {
-      if (syncLoader) syncLoader.style.display = 'flex';
-    } else {
-      if (gate) gate.style.display = 'none';
-    }
-    
-    // 1. On attend le téléchargement complet du Cloud Supabase
+    // 1. On attend le téléchargement complet du Cloud Firebase
     await loadAllCloudData();
     
     // 2. On affiche l'application d'administration
     if (app) app.hidden = false;
-    if (syncLoader) syncLoader.style.display = 'none';
     
     // 3. On initialise les données fraîches
     init();
   }
+
   function tryUnlock() {
-    if (gateInput.value === PASSWORD) {
-      gateError.textContent = '';
-      unlock();
-    } else {
-      gateError.textContent = 'Mot de passe incorrect.';
-      gateInput.value = '';
-      gateInput.focus();
+    const email = gateEmail.value.trim();
+    const password = gatePassword.value.trim();
+
+    if (!email || !password) {
+      gateError.textContent = "Veuillez remplir tous les champs.";
+      return;
     }
+
+    gateError.textContent = "";
+    gateBtn.disabled = true;
+    gateBtn.textContent = "Connexion...";
+
+    firebase.auth().signInWithEmailAndPassword(email, password)
+      .then(() => {
+        // Le onAuthStateChanged se chargera du reste
+        gateBtn.disabled = false;
+        gateBtn.textContent = "Se connecter";
+      })
+      .catch((error) => {
+        gateBtn.disabled = false;
+        gateBtn.textContent = "Se connecter";
+        console.error("Erreur de connexion Firebase Auth:", error);
+        
+        if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+          gateError.textContent = "Email ou mot de passe incorrect.";
+        } else if (error.code === 'auth/invalid-email') {
+          gateError.textContent = "Adresse e-mail invalide.";
+        } else {
+          gateError.textContent = "Erreur : " + error.message;
+        }
+      });
   }
-  if (sessionStorage.getItem('admin-ok') === '1') {
-    unlock();
-  } else {
-    gateInput?.focus();
-    gateBtn?.addEventListener('click', tryUnlock);
-    gateInput?.addEventListener('keydown', e => {
-      if (e.key === 'Enter') { e.preventDefault(); tryUnlock(); }
+
+  // Écouteur de session en temps réel Firebase Auth
+  if (typeof firebase !== 'undefined') {
+    firebase.auth().onAuthStateChanged((user) => {
+      if (user) {
+        unlock();
+      } else {
+        sessionStorage.removeItem('admin-ok');
+        if (app) app.hidden = true;
+        if (gate) gate.style.display = 'flex';
+        gateEmail?.focus();
+      }
     });
   }
+
+  // Écouteurs d'événements du clavier et clics pour la connexion
+  gateBtn?.addEventListener('click', tryUnlock);
+  gateEmail?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); gatePassword?.focus(); }
+  });
+  gatePassword?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); tryUnlock(); }
+  });
+
+  // Connexion Google
+  const googleBtn = document.getElementById('gate-google-btn');
+  googleBtn?.addEventListener('click', () => {
+    if (typeof firebase === 'undefined') return;
+    const provider = new firebase.auth.GoogleAuthProvider();
+    firebase.auth().signInWithPopup(provider)
+      .catch((error) => {
+        console.error("Erreur de connexion Google Auth:", error);
+        gateError.textContent = "Erreur Google : " + error.message;
+      });
+  });
+
+  // Connexion Apple
+  const appleBtn = document.getElementById('gate-apple-btn');
+  appleBtn?.addEventListener('click', () => {
+    if (typeof firebase === 'undefined') return;
+    const provider = new firebase.auth.OAuthProvider('apple.com');
+    firebase.auth().signInWithPopup(provider)
+      .catch((error) => {
+        console.error("Erreur de connexion Apple Auth:", error);
+        gateError.textContent = "Erreur Apple : " + error.message;
+      });
+  });
 
   // ============================================================
   // Init (après login)
@@ -188,8 +241,19 @@
   // ---------- Logout ----------
   function initLogout() {
     document.getElementById('admin-logout')?.addEventListener('click', () => {
-      sessionStorage.removeItem('admin-ok');
-      location.reload();
+      if (typeof firebase !== 'undefined') {
+        firebase.auth().signOut()
+          .then(() => {
+            sessionStorage.removeItem('admin-ok');
+            location.reload();
+          })
+          .catch((error) => {
+            console.error("Erreur de déconnexion Firebase Auth:", error);
+          });
+      } else {
+        sessionStorage.removeItem('admin-ok');
+        location.reload();
+      }
     });
   }
 
@@ -1160,9 +1224,9 @@
       if (typeof db === 'undefined' || !db) return;
       try {
         if (action === 'delete') {
-          await db.collection('deliveries').doc(item.id).delete();
+          await db.ref('deliveries/' + item.id).remove();
         } else if (action === 'upsert') {
-          await db.collection('deliveries').doc(item.id).set({
+          await db.ref('deliveries/' + item.id).set({
             id: item.id,
             code: item.code,
             client: item.client,
@@ -1374,12 +1438,12 @@
   async function syncCloudDataOnAdminStartup() {
     if (typeof db === 'undefined' || !db) return;
     try {
-      const snapshot = await db.collection('portfolio_data').get();
-      if (!snapshot.empty) {
+      const snapshot = await db.ref('portfolio_data').once('value');
+      const dataVal = snapshot.val();
+      if (dataVal) {
         let hasChanges = false;
-        snapshot.forEach(doc => {
-          const key = doc.id;
-          const value = doc.data().value;
+        Object.keys(dataVal).forEach(key => {
+          const value = dataVal[key].value;
           
           const localVal = localStorage.getItem(key);
           const newValString = JSON.stringify(value);

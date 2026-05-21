@@ -1079,10 +1079,11 @@
 
       if (typeof db !== 'undefined' && db) {
         try {
-          const snapshot = await db.collection('deliveries').get();
-          if (!snapshot.empty) {
-            snapshot.forEach(doc => {
-              const d = doc.data();
+          const snapshot = await db.ref('deliveries').once('value');
+          const deliveriesData = snapshot.val();
+          if (deliveriesData) {
+            Object.keys(deliveriesData).forEach(id => {
+              const d = deliveriesData[id];
               if (d && d.code) {
                 DELIVERIES[d.code.toUpperCase()] = d;
               }
@@ -1149,12 +1150,12 @@
   async function syncCloudDataAndRefresh() {
     if (typeof db === 'undefined' || !db) return;
     try {
-      const snapshot = await db.collection('portfolio_data').get();
-      if (!snapshot.empty) {
+      const snapshot = await db.ref('portfolio_data').once('value');
+      const dataVal = snapshot.val();
+      if (dataVal) {
         let hasChanges = false;
-        snapshot.forEach(doc => {
-          const key = doc.id;
-          const value = doc.data().value;
+        Object.keys(dataVal).forEach(key => {
+          const value = dataVal[key].value;
           
           const localVal = localStorage.getItem(key);
           const newValString = JSON.stringify(value);
