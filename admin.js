@@ -563,7 +563,7 @@
     }
 
     document.getElementById('add-skill-btn')?.addEventListener('click', () => {
-      data.skills.push({ fr: '', en: '' });
+      data.skills.push({ fr: '' });
       renderSkills();
     });
 
@@ -1059,7 +1059,6 @@
       document.getElementById('trash-name').value = it.name || '';
       document.getElementById('trash-tag').value = it.tag || '';
       document.getElementById('trash-note-fr').value = it.noteFr || '';
-      document.getElementById('trash-note-en').value = it.noteEn || '';
       document.getElementById('trash-submit').textContent = 'Mettre à jour';
       formTitle.textContent = "Modifier l'élément";
       form.scrollIntoView({ behavior: 'smooth' });
@@ -1079,7 +1078,7 @@
         name: document.getElementById('trash-name').value.trim(),
         tag: document.getElementById('trash-tag').value.trim(),
         noteFr: document.getElementById('trash-note-fr').value.trim(),
-        noteEn: document.getElementById('trash-note-en').value.trim()
+        noteEn: ''
       };
       if (tId.value) {
         const idx = items.findIndex(x => x.id === tId.value);

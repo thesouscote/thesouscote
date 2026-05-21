@@ -107,69 +107,6 @@
       '404.cta': "Retour à l'accueil",
       'cmdk.placeholder': 'Aller à…',
       'cmdk.hint': '↵ pour valider · esc pour fermer · ⌘K pour ouvrir',
-    },
-    en: {
-      'nav.home': 'Home',
-      'nav.about': 'About',
-      'nav.experience': 'Experience',
-      'nav.projects': 'Projects',
-      'nav.contact': 'Contact',
-      'nav.draft': 'Draft',
-      'nav.resources': 'Resources',
-      'resources.title': 'Resources',
-      'resources.intro': 'Free logos, custom work, cards and stickers. Things I make on the side.',
-      'resources.all': 'All',
-      'resources.logo': 'Logos',
-      'resources.carte': 'Graphic cards',
-      'resources.sticker': 'Stickers',
-      'resources.free': 'Free',
-      'resources.buy': 'Order →',
-      'resources.download': 'Download →',
-      'resources.empty': 'No resources in this category.',
-      'hero.eyebrow': "Hi, I'm",
-      'hero.subtitle': 'Designer & developer. I craft simple, elegant and useful experiences.',
-      'hero.cta1': 'See my work',
-      'hero.cta2': 'Get in touch →',
-      'about.title': 'About',
-      'about.text': "I'm <strong>Moke Patrick Armel</strong>. Passionate about minimal design, I love crafting clear, accessible products with attention to every detail. My approach: less, but better.",
-      'about.skill1': 'UI/UX Design',
-      'about.skill2': 'HTML · CSS · JavaScript',
-      'about.skill3': 'Typography',
-      'about.skill4': 'Prototyping',
-      'about.cv': 'Download my CV ↓',
-      'about.playlist': 'What I listen to',
-      'experience.title': 'Experience',
-      'experience.date1': '2024 — Present',
-      'experience.role1': 'Independent designer & developer',
-      'experience.desc1': 'Designing and building websites and visual identities.',
-      'experience.date2': '2022 — 2024',
-      'experience.role2': 'Personal project — thesouscote',
-      'experience.desc2': 'Content creation, streaming and creative exploration.',
-      'experience.date3': 'Before 2022',
-      'experience.role3': 'Learning',
-      'experience.desc3': 'Discovering design, code and typography.',
-      'projects.title': 'Selected work',
-      'projects.desc': 'A short description of the project, its goal and outcome.',
-      'projects.link': 'Learn more →',
-      'contact.title': "Let's work together",
-      'contact.text': 'A project, an idea, or just want to chat?',
-      'contact.name': 'Name',
-      'contact.subject': 'Subject',
-      'contact.message': 'Message',
-      'contact.send': 'Send →',
-      'contact.sending': 'Sending…',
-      'contact.success': 'Message sent! I\'ll get back to you soon.',
-      'contact.error': 'Something went wrong. Please try again.',
-      'contact.or': '— or by email —',
-      'draft.title': 'Draft',
-      'draft.text': 'Old projects, drafts and abandoned ideas. Nothing is lost, everything recycles.',
-      'draft.item1': 'abandoned out of laziness',
-      'draft.item3': "to revisit some day, maybe",
-      '404.title': 'Page not found',
-      '404.text': 'Maybe it\'s in the Draft?',
-      '404.cta': 'Back home',
-      'cmdk.placeholder': 'Go to…',
-      'cmdk.hint': '↵ to confirm · esc to close · ⌘K to open',
     }
   };
 
@@ -290,14 +227,13 @@
         .then(doc => {
           if (doc.exists && doc.data().value) {
             const data = doc.data().value;
-            const lang = getLang();
             // Bio
-            aboutBio.innerHTML = lang === 'en' ? data.bioEn : data.bioFr;
+            aboutBio.innerHTML = data.bioFr;
             // Skills
             const skillsList = document.getElementById('about-skills');
             if (skillsList && data.skills) {
               skillsList.innerHTML = data.skills.map(s =>
-                `<li>${lang === 'en' ? s.en : s.fr}</li>`
+                `<li>${s.fr}</li>`
               ).join('');
             }
             // CV link
@@ -319,13 +255,12 @@
         .then(doc => {
           const items = (doc.exists && doc.data().value) ? doc.data().value : null;
           if (items && items.length) {
-            const lang = getLang();
             expTimeline.innerHTML = items.map(it => `
               <li class="timeline-item reveal">
-                <div class="timeline-date">${lang === 'en' ? it.dateEn : it.dateFr}</div>
+                <div class="timeline-date">${it.dateFr}</div>
                 <div class="timeline-body">
-                  <h3>${lang === 'en' ? it.roleEn : it.roleFr}</h3>
-                  <p>${lang === 'en' ? it.descEn : it.descFr}</p>
+                  <h3>${it.roleFr}</h3>
+                  <p>${it.descFr}</p>
                 </div>
               </li>
             `).join('');
@@ -378,9 +313,8 @@
         .then(doc => {
           const items = (doc.exists && doc.data().value) ? doc.data().value : null;
           if (items && items.length) {
-            const lang = getLang();
             draftList.innerHTML = items.map(it =>
-              `<li><span>${it.name}</span> — ${lang === 'en' ? it.noteEn : it.noteFr}</li>`
+              `<li><span>${it.name}</span> — ${it.noteFr}</li>`
             ).join('');
           }
         })
@@ -1242,11 +1176,10 @@
           if (targetAboutBio && dataVal.admin_about) {
             try {
               const dataA = dataVal.admin_about.value;
-              const lang = getLang();
-              targetAboutBio.innerHTML = lang === 'en' ? dataA.bioEn : dataA.bioFr;
+              targetAboutBio.innerHTML = dataA.bioFr;
               const skillsList = document.getElementById('about-skills');
               if (skillsList && dataA.skills) {
-                skillsList.innerHTML = dataA.skills.map(s => `<li>${lang === 'en' ? s.en : s.fr}</li>`).join('');
+                skillsList.innerHTML = dataA.skills.map(s => `<li>${s.fr}</li>`).join('');
               }
               const cvLink = document.getElementById('about-cv-link');
               if (cvLink && dataA.cv) cvLink.href = dataA.cv;
@@ -1258,13 +1191,12 @@
           if (targetExpTimeline && dataVal.admin_experience) {
             try {
               const items = dataVal.admin_experience.value;
-              const lang = getLang();
               targetExpTimeline.innerHTML = items.map(it => `
                 <li class="timeline-item reveal">
-                  <div class="timeline-date">${lang === 'en' ? it.dateEn : it.dateFr}</div>
+                  <div class="timeline-date">${it.dateFr}</div>
                   <div class="timeline-body">
-                    <h3>${lang === 'en' ? it.roleEn : it.roleFr}</h3>
-                    <p>${lang === 'en' ? it.descEn : it.descFr}</p>
+                    <h3>${it.roleFr}</h3>
+                    <p>${it.descFr}</p>
                   </div>
                 </li>
               `).join('');
@@ -1277,9 +1209,8 @@
           if (typeof renderDraft === 'function' && targetDraftList && dataVal.admin_trash) {
             try {
               const items = dataVal.admin_trash.value;
-              const lang = getLang();
               targetDraftList.innerHTML = items.map(it =>
-                `<li><span>${it.name}</span> — ${lang === 'en' ? it.noteEn : it.noteFr}</li>`
+                `<li><span>${it.name}</span> — ${it.noteFr}</li>`
               ).join('');
             } catch {}
           }
