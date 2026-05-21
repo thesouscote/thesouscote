@@ -1440,25 +1440,52 @@
     try {
       const snapshot = await db.ref('portfolio_data').once('value');
       const dataVal = snapshot.val();
-      if (dataVal) {
-        let hasChanges = false;
-        Object.keys(dataVal).forEach(key => {
-          const value = dataVal[key].value;
-          
+      
+      const CMS_KEYS = [
+        'projects',
+        'admin_about',
+        'admin_experience',
+        'admin_contact',
+        'admin_resources',
+        'admin_trash',
+        'admin_site_meta',
+        'admin_deliveries',
+        'admin_categories'
+      ];
+
+      // Si Firebase est complètement vide (première connexion), on l'initialise avec nos données locales !
+      if (!dataVal) {
+        console.log("[Firebase Cloud Admin] Base de données vide. Initialisation automatique avec les données locales...");
+        CMS_KEYS.forEach(key => {
           const localVal = localStorage.getItem(key);
-          const newValString = JSON.stringify(value);
-          if (localVal !== newValString) {
-            localStorage.setItem(key, newValString);
-            hasChanges = true;
+          if (localVal) {
+            try {
+              const parsed = JSON.parse(localVal);
+              db.ref('portfolio_data/' + key).set({ value: parsed });
+            } catch {}
           }
         });
+        return;
+      }
+
+      // Si Firebase contient des données, on les synchronise intelligemment
+      let hasChanges = false;
+      Object.keys(dataVal).forEach(key => {
+        const value = dataVal[key].value;
+        const localVal = localStorage.getItem(key);
+        const newValString = JSON.stringify(value);
         
-        // S'il y a des données neuves reçues de Firebase (ex: modifiées sur mobile),
-        // on recharge l'admin pour afficher ces nouvelles valeurs à l'écran.
-        if (hasChanges) {
-          console.log("[Firebase Cloud Admin] Données fraîches détectées ! Rechargement...");
-          location.reload();
+        if (localVal !== newValString) {
+          localStorage.setItem(key, newValString);
+          hasChanges = true;
         }
+      });
+      
+      // S'il y a des données neuves reçues de Firebase (ex: modifiées sur mobile),
+      // on recharge l'admin pour afficher ces nouvelles valeurs à l'écran.
+      if (hasChanges) {
+        console.log("[Firebase Cloud Admin] Données fraîches détectées ! Rechargement...");
+        location.reload();
       }
     } catch (e) {
       console.error("[Firebase Cloud Admin] Erreur lors du chargement initial :", e);
