@@ -646,9 +646,9 @@
     const KEY = 'admin_experience';
 
     const defaults = [
-      { id:'e1', dateFr:'2024 — Présent', roleFr:'Designer & développeur indépendant', descFr:'Conception et développement de sites et identités visuelles.' },
-      { id:'e2', dateFr:'2022 — 2024', roleFr:'Projet personnel — thesouscote', descFr:'Création de contenu, streaming et exploration créative.' },
-      { id:'e3', dateFr:'Avant 2022', roleFr:'Apprentissage', descFr:'Découverte du design, du code et de la typographie.' }
+      { id:'e1', dateFr:'2024 — Présent', roleFr:'Designer & développeur indépendant', descFr:'Conception et développement de sites et identités visuelles.', projectLink:'' },
+      { id:'e2', dateFr:'2022 — 2024', roleFr:'Projet personnel — thesouscote', descFr:'Création de contenu, streaming et exploration créative.', projectLink:'' },
+      { id:'e3', dateFr:'Avant 2022', roleFr:'Apprentissage', descFr:'Découverte du design, du code et de la typographie.', projectLink:'' }
     ];
 
     let items = [];
@@ -661,6 +661,27 @@
     const countEl = document.getElementById('exp-count');
     const eId = document.getElementById('exp-id');
     const formTitle = document.getElementById('exp-form-title');
+    const selectLink = document.getElementById('exp-project-link');
+
+    function populateProjectSelect() {
+      if (!selectLink) return;
+      selectLink.innerHTML = '<option value="">Aucun projet lié</option>';
+      try {
+        const storedProjects = localStorage.getItem('projects');
+        if (storedProjects) {
+          const parsed = JSON.parse(storedProjects);
+          const projectsList = parsed.projects || [];
+          projectsList.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.id;
+            opt.textContent = p.title;
+            selectLink.appendChild(opt);
+          });
+        }
+      } catch (err) {
+        console.warn("Impossible de peupler la liste des projets pour l'expérience :", err);
+      }
+    }
 
     function save() {
       localStorage.setItem(KEY, JSON.stringify(items));
@@ -673,11 +694,26 @@
         list.innerHTML = '<li class="admin-empty">Aucune expérience.</li>';
         return;
       }
-      list.innerHTML = items.map((it, i) => `
+
+      let projectsMap = {};
+      try {
+        const storedProjects = localStorage.getItem('projects');
+        if (storedProjects) {
+          const parsed = JSON.parse(storedProjects);
+          (parsed.projects || []).forEach(p => { projectsMap[p.id] = p.title; });
+        }
+      } catch {}
+
+      list.innerHTML = items.map((it, i) => {
+        const linkedTitle = it.projectLink ? (projectsMap[it.projectLink] || 'Projet inconnu') : null;
+        return `
         <li class="admin-item admin-item--no-thumb">
           <div class="admin-item-body">
             <div class="admin-item-title">${esc(it.roleFr)}</div>
-            <div class="admin-item-desc">${esc(it.dateFr)} — ${esc(it.descFr)}</div>
+            <div class="admin-item-desc">
+              ${esc(it.dateFr)} — ${esc(it.descFr)}
+              ${linkedTitle ? `<br><small style="color:var(--primary); font-weight:500;">🔗 Projet lié : ${esc(linkedTitle)}</small>` : ''}
+            </div>
           </div>
           <div class="admin-item-actions">
             <button type="button" data-emoveup="${i}" class="btn btn-ghost btn-sm" ${i === 0 ? 'disabled' : ''} title="Monter">↑</button>
@@ -685,7 +721,8 @@
             <button type="button" data-eedit="${it.id}" class="btn btn-ghost btn-sm">Modifier</button>
             <button type="button" data-edel="${it.id}" class="btn btn-ghost btn-sm btn-del">×</button>
           </div>
-        </li>`).join('');
+        </li>`;
+      }).join('');
       list.querySelectorAll('[data-emoveup]').forEach(b =>
         b.addEventListener('click', () => {
           const i = parseInt(b.dataset.emoveup);
@@ -710,10 +747,12 @@
     function editE(id) {
       const it = items.find(x => x.id === id);
       if (!it) return;
+      populateProjectSelect();
       eId.value = it.id;
       document.getElementById('exp-date-fr').value = it.dateFr || '';
       document.getElementById('exp-role-fr').value = it.roleFr || '';
       document.getElementById('exp-desc-fr').value = it.descFr || '';
+      if (selectLink) selectLink.value = it.projectLink || '';
       document.getElementById('exp-submit').textContent = 'Mettre à jour';
       formTitle.textContent = "Modifier l'expérience";
       form.scrollIntoView({ behavior: 'smooth' });
@@ -722,6 +761,7 @@
     function resetForm() {
       form.reset();
       eId.value = '';
+      if (selectLink) selectLink.value = '';
       document.getElementById('exp-submit').textContent = 'Ajouter';
       formTitle.textContent = 'Ajouter une expérience';
     }
@@ -732,7 +772,8 @@
         id: eId.value || newId(),
         dateFr: document.getElementById('exp-date-fr').value.trim(),
         roleFr: document.getElementById('exp-role-fr').value.trim(),
-        descFr: document.getElementById('exp-desc-fr').value.trim()
+        descFr: document.getElementById('exp-desc-fr').value.trim(),
+        projectLink: selectLink ? selectLink.value : ''
       };
       if (eId.value) {
         const idx = items.findIndex(x => x.id === eId.value);
@@ -747,6 +788,8 @@
     });
 
     document.getElementById('exp-reset')?.addEventListener('click', resetForm);
+
+    populateProjectSelect();
     render();
   }
 
