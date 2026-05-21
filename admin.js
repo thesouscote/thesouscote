@@ -93,12 +93,38 @@
     if (typeof db === 'undefined' || !db) return;
     try {
       const snapshot = await db.collection('portfolio_data').get();
-      if (!snapshot.empty) {
+      
+      const CMS_KEYS = [
+        'projects',
+        'admin_about',
+        'admin_experience',
+        'admin_contact',
+        'admin_resources',
+        'admin_trash',
+        'admin_site_meta',
+        'admin_deliveries',
+        'admin_categories'
+      ];
+
+      if (snapshot.empty) {
+        console.log("[Firebase Cloud] Base de données Firestore vide. Initialisation automatique...");
+        CMS_KEYS.forEach(key => {
+          const localVal = localStorage.getItem(key);
+          if (localVal) {
+            try {
+              const parsed = JSON.parse(localVal);
+              db.collection('portfolio_data').doc(key).set({ value: parsed });
+            } catch {}
+          }
+        });
+      } else {
         snapshot.forEach(doc => {
           const key = doc.id;
           const value = doc.data().value;
-          // Utilise l'original originalSetItem pour éviter de réenclencher l'intercepteur en boucle
-          originalSetItem.call(localStorage, key, JSON.stringify(value));
+          if (value !== undefined) {
+            // Utilise l'original originalSetItem pour éviter de réenclencher l'intercepteur en boucle
+            originalSetItem.call(localStorage, key, JSON.stringify(value));
+          }
         });
         console.log("[Firebase Cloud] Toutes les données du portfolio ont été synchronisées localement !");
       }
@@ -1462,70 +1488,4 @@
     });
   });
 
-  // ============================================================
-  // Synchronisation Cloud Firebase pour l'Admin (CMS Global)
-  // ============================================================
-  async function syncCloudDataOnAdminStartup() {
-    if (typeof db === 'undefined' || !db) return;
-    try {
-      const snapshot = await db.collection('portfolio_data').get();
-      
-      const CMS_KEYS = [
-        'projects',
-        'admin_about',
-        'admin_experience',
-        'admin_contact',
-        'admin_resources',
-        'admin_trash',
-        'admin_site_meta',
-        'admin_deliveries',
-        'admin_categories'
-      ];
-
-      // Si Firebase Firestore est complètement vide (première connexion), on l'initialise avec nos données locales !
-      if (snapshot.empty) {
-        console.log("[Firebase Cloud Admin] Base de données Firestore vide. Initialisation automatique...");
-        CMS_KEYS.forEach(key => {
-          const localVal = localStorage.getItem(key);
-          if (localVal) {
-            try {
-              const parsed = JSON.parse(localVal);
-              db.collection('portfolio_data').doc(key).set({ value: parsed });
-            } catch {}
-          }
-        });
-        return;
-      }
-
-      // Si Firebase contient des données, on les télécharge
-      let dataVal = {};
-      snapshot.forEach(doc => {
-        dataVal[doc.id] = doc.data();
-      });
-
-      let hasChanges = false;
-      Object.keys(dataVal).forEach(key => {
-        const value = dataVal[key].value;
-        const localVal = localStorage.getItem(key);
-        const newValString = JSON.stringify(value);
-        
-        if (localVal !== newValString) {
-          localStorage.setItem(key, newValString);
-          hasChanges = true;
-        }
-      });
-      
-      // S'il y a des données neuves reçues de Firebase (ex: modifiées sur mobile),
-      // on recharge l'admin pour afficher ces nouvelles valeurs à l'écran.
-      if (hasChanges) {
-        console.log("[Firebase Cloud Admin] Données fraîches détectées ! Rechargement...");
-        location.reload();
-      }
-    } catch (e) {
-      console.error("[Firebase Cloud Admin] Erreur lors du chargement initial :", e);
-    }
-  }
-
-  // Lance le pull Supabase Cloud au démarrage
-  syncCloudDataOnAdminStartup();
 })();
