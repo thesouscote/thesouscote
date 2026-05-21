@@ -35,6 +35,21 @@
     </div>
   </nav>
 
+  <!-- Écran de Synchronisation Cloud en arrière-plan -->
+  <div id="cloud-sync-loader" class="gate" style="display: none; background: rgba(var(--bg-rgb), 0.95); z-index: 9999;">
+    <div class="gate-box">
+      <div class="gate-logo" style="animation: logoIn 1.4s infinite ease-in-out;">
+        <svg viewBox="0 0 572 572" xmlns="http://www.w3.org/2000/svg" width="48" height="48">
+          <path d="M285.999 0L411.949 188.789L319.191 188.789L319.191 332.495L252.807 332.495L252.807 188.789L160.05 188.789L285.999 0Z" fill="currentColor"/>
+          <path d="M251.898 428.299L125.949 239.509L0 428.299L92.7567 428.299L92.7567 572.004L159.141 572.004L159.141 428.299L251.898 428.299Z" fill="currentColor"/>
+          <path d="M446.052 239.509L572.001 428.299L479.245 428.299L479.245 572.004L412.86 572.004L412.86 428.299L320.103 428.299L446.052 239.509Z" fill="currentColor"/>
+        </svg>
+      </div>
+      <h2 style="font-size: 20px; letter-spacing: -0.02em;">Synchronisation...</h2>
+      <p style="font-size: 14px; opacity: 0.7;">Chargement des données du Cloud Supabase</p>
+    </div>
+  </div>
+
   <!-- Gate mot de passe (masqué instantanément si déjà authentifié) -->
   <div id="gate" class="gate">
     <div class="gate-box">

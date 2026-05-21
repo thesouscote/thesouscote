@@ -76,9 +76,23 @@
   // ---------- Gate ----------
   async function unlock() {
     sessionStorage.setItem('admin-ok', '1');
-    if (gate) gate.style.display = 'none';
+    const syncLoader = document.getElementById('cloud-sync-loader');
+    
+    // Si l'utilisateur est déjà connecté, on affiche un loader minimal de synchro cloud
+    if (gate && gate.style.display === 'none') {
+      if (syncLoader) syncLoader.style.display = 'flex';
+    } else {
+      if (gate) gate.style.display = 'none';
+    }
+    
+    // 1. On attend le téléchargement complet du Cloud Supabase
+    await loadAllCloudData();
+    
+    // 2. On affiche l'application d'administration
     if (app) app.hidden = false;
-    await loadAllCloudData(); // Synchronise d'abord tout le Cloud Supabase
+    if (syncLoader) syncLoader.style.display = 'none';
+    
+    // 3. On initialise les données fraîches
     init();
   }
   function tryUnlock() {
