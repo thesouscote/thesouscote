@@ -18,5 +18,5 @@ const firebaseConfig = {
 let db = null;
 if (typeof firebase !== 'undefined') {
   firebase.initializeApp(firebaseConfig);
-  db = firebase.database();
+  db = firebase.firestore();
 }

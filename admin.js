@@ -45,7 +45,7 @@
     if (typeof db !== 'undefined' && db && CMS_KEYS.includes(key) && typeof value === 'string' && value.length > 0) {
       try {
         const parsed = JSON.parse(value);
-        db.ref('portfolio_data/' + key).set({ value: parsed })
+        db.collection('portfolio_data').doc(key).set({ value: parsed })
           .then(() => {
             console.log(`[Firebase Cloud] Synchronisation réussie pour [${key}]`);
           })
@@ -61,11 +61,11 @@
   async function loadAllCloudData() {
     if (typeof db === 'undefined' || !db) return;
     try {
-      const snapshot = await db.ref('portfolio_data').once('value');
-      const dataVal = snapshot.val();
-      if (dataVal) {
-        Object.keys(dataVal).forEach(key => {
-          const value = dataVal[key].value;
+      const snapshot = await db.collection('portfolio_data').get();
+      if (!snapshot.empty) {
+        snapshot.forEach(doc => {
+          const key = doc.id;
+          const value = doc.data().value;
           // Utilise l'original originalSetItem pour éviter de réenclencher l'intercepteur en boucle
           originalSetItem.call(localStorage, key, JSON.stringify(value));
         });
@@ -1224,9 +1224,9 @@
       if (typeof db === 'undefined' || !db) return;
       try {
         if (action === 'delete') {
-          await db.ref('deliveries/' + item.id).remove();
+          await db.collection('deliveries').doc(item.id).delete();
         } else if (action === 'upsert') {
-          await db.ref('deliveries/' + item.id).set({
+          await db.collection('deliveries').doc(item.id).set({
             id: item.id,
             code: item.code,
             client: item.client,
@@ -1438,8 +1438,7 @@
   async function syncCloudDataOnAdminStartup() {
     if (typeof db === 'undefined' || !db) return;
     try {
-      const snapshot = await db.ref('portfolio_data').once('value');
-      const dataVal = snapshot.val();
+      const snapshot = await db.collection('portfolio_data').get();
       
       const CMS_KEYS = [
         'projects',
@@ -1453,22 +1452,27 @@
         'admin_categories'
       ];
 
-      // Si Firebase est complètement vide (première connexion), on l'initialise avec nos données locales !
-      if (!dataVal) {
-        console.log("[Firebase Cloud Admin] Base de données vide. Initialisation automatique avec les données locales...");
+      // Si Firebase Firestore est complètement vide (première connexion), on l'initialise avec nos données locales !
+      if (snapshot.empty) {
+        console.log("[Firebase Cloud Admin] Base de données Firestore vide. Initialisation automatique...");
         CMS_KEYS.forEach(key => {
           const localVal = localStorage.getItem(key);
           if (localVal) {
             try {
               const parsed = JSON.parse(localVal);
-              db.ref('portfolio_data/' + key).set({ value: parsed });
+              db.collection('portfolio_data').doc(key).set({ value: parsed });
             } catch {}
           }
         });
         return;
       }
 
-      // Si Firebase contient des données, on les synchronise intelligemment
+      // Si Firebase contient des données, on les télécharge
+      let dataVal = {};
+      snapshot.forEach(doc => {
+        dataVal[doc.id] = doc.data();
+      });
+
       let hasChanges = false;
       Object.keys(dataVal).forEach(key => {
         const value = dataVal[key].value;

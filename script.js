@@ -4,6 +4,37 @@
 (function () {
   const root = document.documentElement;
 
+  // Handler d'erreurs global pour le débogage sur mobile
+  window.addEventListener('error', (event) => {
+    console.error("Global Error Caught:", event.error);
+    const errDiv = document.createElement('div');
+    errDiv.style.position = 'fixed';
+    errDiv.style.bottom = '20px';
+    errDiv.style.left = '20px';
+    errDiv.style.right = '20px';
+    errDiv.style.background = '#e0245e';
+    errDiv.style.color = '#fff';
+    errDiv.style.padding = '12px 16px';
+    errDiv.style.borderRadius = '8px';
+    errDiv.style.fontSize = '12px';
+    errDiv.style.fontFamily = 'monospace';
+    errDiv.style.zIndex = '99999';
+    errDiv.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+    errDiv.textContent = `Erreur: ${event.message} (${event.filename}:${event.lineno})`;
+    
+    const closeBtn = document.createElement('span');
+    closeBtn.textContent = ' ✕';
+    closeBtn.style.cursor = 'pointer';
+    closeBtn.style.float = 'right';
+    closeBtn.style.fontWeight = 'bold';
+    closeBtn.style.marginLeft = '10px';
+    closeBtn.onclick = () => errDiv.remove();
+    errDiv.appendChild(closeBtn);
+    
+    document.body.appendChild(errDiv);
+    setTimeout(() => { if(errDiv.parentNode) errDiv.remove(); }, 10000);
+  });
+
   // Variables globales de rendu pour les mises à jour dynamiques
   let renderProjects = null;
   let renderResources = null;
@@ -219,13 +250,12 @@
       applyI18n(getLang());
     };
 
-    // Chargement initial depuis Firebase Realtime Database
+    // Chargement initial depuis Firebase Cloud Firestore
     if (typeof db !== 'undefined' && db) {
-      db.ref('portfolio_data/projects').once('value')
-        .then(snapshot => {
-          const val = snapshot.val();
-          if (val && val.value) {
-            renderProjects(val.value.projects || []);
+      db.collection('portfolio_data').doc('projects').get()
+        .then(doc => {
+          if (doc.exists && doc.data().value) {
+            renderProjects(doc.data().value.projects || []);
           } else {
             // Fallback JSON par défaut si vide
             fetch('projects.json')
@@ -256,11 +286,10 @@
   const aboutBio = document.getElementById('about-bio');
   if (aboutBio) {
     if (typeof db !== 'undefined' && db) {
-      db.ref('portfolio_data/admin_about').once('value')
-        .then(snapshot => {
-          const val = snapshot.val();
-          if (val && val.value) {
-            const data = val.value;
+      db.collection('portfolio_data').doc('admin_about').get()
+        .then(doc => {
+          if (doc.exists && doc.data().value) {
+            const data = doc.data().value;
             const lang = getLang();
             // Bio
             aboutBio.innerHTML = lang === 'en' ? data.bioEn : data.bioFr;
@@ -286,9 +315,9 @@
   const expTimeline = document.getElementById('experience-timeline');
   if (expTimeline) {
     if (typeof db !== 'undefined' && db) {
-      db.ref('portfolio_data/admin_experience').once('value')
-        .then(snapshot => {
-          const items = snapshot.val() ? snapshot.val().value : null;
+      db.collection('portfolio_data').doc('admin_experience').get()
+        .then(doc => {
+          const items = (doc.exists && doc.data().value) ? doc.data().value : null;
           if (items && items.length) {
             const lang = getLang();
             expTimeline.innerHTML = items.map(it => `
@@ -314,11 +343,10 @@
   const contactEmail = document.getElementById('contact-email-link');
   if (contactEmail) {
     if (typeof db !== 'undefined' && db) {
-      db.ref('portfolio_data/admin_contact').once('value')
-        .then(snapshot => {
-          const val = snapshot.val();
-          if (val && val.value) {
-            const data = val.value;
+      db.collection('portfolio_data').doc('admin_contact').get()
+        .then(doc => {
+          const data = (doc.exists && doc.data().value) ? doc.data().value : null;
+          if (data) {
             if (data.email) {
               contactEmail.href = 'mailto:' + data.email;
               contactEmail.textContent = data.email;
@@ -346,9 +374,9 @@
   const renderDraft = () => {
     if (!draftList) return;
     if (typeof db !== 'undefined' && db) {
-      db.ref('portfolio_data/admin_trash').once('value')
-        .then(snapshot => {
-          const items = snapshot.val() ? snapshot.val().value : null;
+      db.collection('portfolio_data').doc('admin_trash').get()
+        .then(doc => {
+          const items = (doc.exists && doc.data().value) ? doc.data().value : null;
           if (items && items.length) {
             const lang = getLang();
             draftList.innerHTML = items.map(it =>
@@ -454,11 +482,10 @@
     };
 
     if (typeof db !== 'undefined' && db) {
-      db.ref('portfolio_data/admin_resources').once('value')
-        .then(snapshot => {
-          const val = snapshot.val();
-          if (val && val.value && Array.isArray(val.value.resources) && val.value.resources.length) {
-            allResources = val.value.resources;
+      db.collection('portfolio_data').doc('admin_resources').get()
+        .then(doc => {
+          if (doc.exists && doc.data().value && Array.isArray(doc.data().value.resources) && doc.data().value.resources.length) {
+            allResources = doc.data().value.resources;
             renderResources();
           } else {
             fetchResources();
@@ -898,20 +925,8 @@
       }
     };
 
-    // Load from local storage or json
-    const localData = localStorage.getItem('projects');
-    let projLoaded = false;
-    if (localData) {
-      try {
-        const list = JSON.parse(localData).projects || [];
-        const found = list.find(x => x.id === projId);
-        if (found) {
-          renderDetail(found);
-          projLoaded = true;
-        }
-      } catch { /* ignore */ }
-    }
-    if (!projLoaded) {
+    // Load from Firebase first, fallback to JSON
+    const fallbackProjectJSON = () => {
       fetch('projects.json')
         .then((r) => r.json())
         .then((data) => {
@@ -920,6 +935,21 @@
           renderDetail(found);
         })
         .catch(() => { projTitle.textContent = "Erreur de chargement"; });
+    };
+
+    if (typeof db !== 'undefined' && db) {
+      db.collection('portfolio_data').doc('projects').get()
+        .then(doc => {
+          if (doc.exists && doc.data().value) {
+            const list = doc.data().value.projects || [];
+            const found = list.find(x => x.id === projId);
+            if (found) { renderDetail(found); return; }
+          }
+          fallbackProjectJSON();
+        })
+        .catch(() => fallbackProjectJSON());
+    } else {
+      fallbackProjectJSON();
     }
   }
 
@@ -1044,21 +1074,8 @@
       }
     };
 
-    const localRes = localStorage.getItem('admin_resources');
-    let resLoaded = false;
-    if (localRes) {
-      try {
-        const parsed = JSON.parse(localRes);
-        if (parsed && Array.isArray(parsed.resources) && parsed.resources.length) {
-          const found = parsed.resources.find(x => x.id === resId);
-          if (found) {
-            renderResourceDetail(found);
-            resLoaded = true;
-          }
-        }
-      } catch { /* ignore */ }
-    }
-    if (!resLoaded) {
+    // Load from Firebase first, fallback to JSON
+    const fallbackMarketJSON = () => {
       fetch('market.json')
         .then(resp => resp.json())
         .then(data => {
@@ -1066,6 +1083,20 @@
           renderResourceDetail(found);
         })
         .catch(() => { resTitle.textContent = 'Erreur de chargement'; });
+    };
+
+    if (typeof db !== 'undefined' && db) {
+      db.collection('portfolio_data').doc('admin_resources').get()
+        .then(doc => {
+          if (doc.exists && doc.data().value && Array.isArray(doc.data().value.resources)) {
+            const found = doc.data().value.resources.find(x => x.id === resId);
+            if (found) { renderResourceDetail(found); return; }
+          }
+          fallbackMarketJSON();
+        })
+        .catch(() => fallbackMarketJSON());
+    } else {
+      fallbackMarketJSON();
     }
   }
 
@@ -1120,11 +1151,10 @@
 
       if (typeof db !== 'undefined' && db) {
         try {
-          const snapshot = await db.ref('deliveries').once('value');
-          const deliveriesData = snapshot.val();
-          if (deliveriesData) {
-            Object.keys(deliveriesData).forEach(id => {
-              const d = deliveriesData[id];
+          const snapshot = await db.collection('deliveries').get();
+          if (!snapshot.empty) {
+            snapshot.forEach(doc => {
+              const d = doc.data();
               if (d && d.code) {
                 DELIVERIES[d.code.toUpperCase()] = d;
               }
@@ -1136,7 +1166,7 @@
         }
       }
 
-      // Repli sur le stockage local si Supabase non connecté ou en erreur
+      // Repli sur le stockage local si Firebase non connecté ou en erreur
       if (!loadedFromCloud) {
         const localDel = localStorage.getItem('admin_deliveries');
         if (localDel) {
@@ -1191,10 +1221,14 @@
   function syncCloudDataAndRefresh() {
     if (typeof db === 'undefined' || !db) return;
     try {
-      // On s'abonne aux changements Firebase en temps réel (.on('value')) !
-      db.ref('portfolio_data').on('value', (snapshot) => {
-        const dataVal = snapshot.val();
-        if (dataVal) {
+      // On s'abonne aux changements Firebase Firestore en temps réel (.onSnapshot) !
+      db.collection('portfolio_data').onSnapshot((snapshot) => {
+        let dataVal = {};
+        snapshot.forEach(doc => {
+          dataVal[doc.id] = doc.data();
+        });
+
+        if (Object.keys(dataVal).length > 0) {
           console.log("[Firebase Cloud] Données mises à jour, actualisation dynamique de l'affichage...");
           
           // 1. Rafraîchit les Projets si on est sur la grille des projets
