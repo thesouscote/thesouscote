@@ -187,14 +187,25 @@
       applyI18n(getLang());
     };
 
+    // Tentative de rendu instantané depuis le cache local pour éviter tout clignotement
+    const cachedProjects = localStorage.getItem('projects');
+    if (cachedProjects) {
+      try {
+        const parsed = JSON.parse(cachedProjects);
+        if (parsed && Array.isArray(parsed.projects)) {
+          renderProjects(parsed.projects);
+        }
+      } catch (err) {}
+    }
+
     // Chargement initial depuis Firebase Cloud Firestore
     if (typeof db !== 'undefined' && db) {
       db.collection('portfolio_data').doc('projects').get()
         .then(doc => {
           if (doc.exists && doc.data().value) {
             renderProjects(doc.data().value.projects || []);
-          } else {
-            // Fallback JSON par défaut si vide
+          } else if (!cachedProjects) {
+            // Fallback JSON uniquement s'il n'y avait rien en cache
             fetch('projects.json')
               .then((r) => r.json())
               .then((data) => renderProjects(data.projects || []))
@@ -202,14 +213,14 @@
           }
         })
         .catch(() => {
-          // Fallback JSON
-          fetch('projects.json')
-            .then((r) => r.json())
-            .then((data) => renderProjects(data.projects || []))
-            .catch(() => { projectsGrid.innerHTML = '<p>Impossible de charger les projets.</p>'; });
+          if (!cachedProjects) {
+            fetch('projects.json')
+              .then((r) => r.json())
+              .then((data) => renderProjects(data.projects || []))
+              .catch(() => { projectsGrid.innerHTML = '<p>Impossible de charger les projets.</p>'; });
+          }
         });
-    } else {
-      // Fallback JSON
+    } else if (!cachedProjects) {
       fetch('projects.json')
         .then((r) => r.json())
         .then((data) => renderProjects(data.projects || []))
@@ -222,23 +233,31 @@
   // ============================================================
   const aboutBio = document.getElementById('about-bio');
   if (aboutBio) {
+    const cachedAbout = localStorage.getItem('admin_about');
+    const renderAbout = (data) => {
+      aboutBio.innerHTML = data.bioFr;
+      const skillsList = document.getElementById('about-skills');
+      if (skillsList && data.skills) {
+        skillsList.innerHTML = data.skills.map(s => `<li>${s.fr}</li>`).join('');
+      }
+      const cvLink = document.getElementById('about-cv-link');
+      if (cvLink && data.cv) cvLink.href = data.cv;
+    };
+
+    if (cachedAbout) {
+      try {
+        const parsed = JSON.parse(cachedAbout);
+        if (parsed && parsed.bioFr) {
+          renderAbout(parsed);
+        }
+      } catch (err) {}
+    }
+
     if (typeof db !== 'undefined' && db) {
       db.collection('portfolio_data').doc('admin_about').get()
         .then(doc => {
           if (doc.exists && doc.data().value) {
-            const data = doc.data().value;
-            // Bio
-            aboutBio.innerHTML = data.bioFr;
-            // Skills
-            const skillsList = document.getElementById('about-skills');
-            if (skillsList && data.skills) {
-              skillsList.innerHTML = data.skills.map(s =>
-                `<li>${s.fr}</li>`
-              ).join('');
-            }
-            // CV link
-            const cvLink = document.getElementById('about-cv-link');
-            if (cvLink && data.cv) cvLink.href = data.cv;
+            renderAbout(doc.data().value);
           }
         })
         .catch(() => {});
@@ -250,22 +269,36 @@
   // ============================================================
   const expTimeline = document.getElementById('experience-timeline');
   if (expTimeline) {
+    const cachedExp = localStorage.getItem('admin_experience');
+    const renderExp = (items) => {
+      expTimeline.innerHTML = items.map(it => `
+        <li class="timeline-item reveal">
+          <div class="timeline-date">${it.dateFr}</div>
+          <div class="timeline-body">
+            <h3>${it.roleFr}</h3>
+            <p>${it.descFr}</p>
+          </div>
+        </li>
+      `).join('');
+      // re-observe reveals
+      observeNewReveals(expTimeline);
+    };
+
+    if (cachedExp) {
+      try {
+        const parsed = JSON.parse(cachedExp);
+        if (Array.isArray(parsed)) {
+          renderExp(parsed);
+        }
+      } catch (err) {}
+    }
+
     if (typeof db !== 'undefined' && db) {
       db.collection('portfolio_data').doc('admin_experience').get()
         .then(doc => {
           const items = (doc.exists && doc.data().value) ? doc.data().value : null;
           if (items && items.length) {
-            expTimeline.innerHTML = items.map(it => `
-              <li class="timeline-item reveal">
-                <div class="timeline-date">${it.dateFr}</div>
-                <div class="timeline-body">
-                  <h3>${it.roleFr}</h3>
-                  <p>${it.descFr}</p>
-                </div>
-              </li>
-            `).join('');
-            // re-observe reveals
-            observeNewReveals(expTimeline);
+            renderExp(items);
           }
         })
         .catch(() => {});
@@ -277,25 +310,39 @@
   // ============================================================
   const contactEmail = document.getElementById('contact-email-link');
   if (contactEmail) {
+    const cachedContact = localStorage.getItem('admin_contact');
+    const renderContact = (data) => {
+      if (data.email) {
+        contactEmail.href = 'mailto:' + data.email;
+        contactEmail.textContent = data.email;
+      }
+      const socialsDiv = document.getElementById('contact-socials');
+      if (socialsDiv && data.socials) {
+        socialsDiv.innerHTML = data.socials
+          .filter(s => s.name && s.url)
+          .map((s, i, arr) => {
+            let html = `<a href="${s.url}" target="_blank" rel="noopener">${s.name}</a>`;
+            if (i < arr.length - 1) html += '<span>·</span>';
+            return html;
+          }).join('\n          ');
+      }
+    };
+
+    if (cachedContact) {
+      try {
+        const parsed = JSON.parse(cachedContact);
+        if (parsed && (parsed.email || parsed.socials)) {
+          renderContact(parsed);
+        }
+      } catch (err) {}
+    }
+
     if (typeof db !== 'undefined' && db) {
       db.collection('portfolio_data').doc('admin_contact').get()
         .then(doc => {
           const data = (doc.exists && doc.data().value) ? doc.data().value : null;
           if (data) {
-            if (data.email) {
-              contactEmail.href = 'mailto:' + data.email;
-              contactEmail.textContent = data.email;
-            }
-            const socialsDiv = document.getElementById('contact-socials');
-            if (socialsDiv && data.socials) {
-              socialsDiv.innerHTML = data.socials
-                .filter(s => s.name && s.url)
-                .map((s, i, arr) => {
-                  let html = `<a href="${s.url}" target="_blank" rel="noopener">${s.name}</a>`;
-                  if (i < arr.length - 1) html += '<span>·</span>';
-                  return html;
-                }).join('\n          ');
-            }
+            renderContact(data);
           }
         })
         .catch(() => {});
@@ -308,14 +355,26 @@
   const draftList = document.getElementById('draft-list');
   const renderDraft = () => {
     if (!draftList) return;
+    const cachedDraft = localStorage.getItem('admin_trash');
+    const drawDraft = (items) => {
+      draftList.innerHTML = items.map(it => `<li><span>${it.name}</span> — ${it.noteFr}</li>`).join('');
+    };
+
+    if (cachedDraft) {
+      try {
+        const parsed = JSON.parse(cachedDraft);
+        if (Array.isArray(parsed)) {
+          drawDraft(parsed);
+        }
+      } catch (err) {}
+    }
+
     if (typeof db !== 'undefined' && db) {
       db.collection('portfolio_data').doc('admin_trash').get()
         .then(doc => {
           const items = (doc.exists && doc.data().value) ? doc.data().value : null;
           if (items && items.length) {
-            draftList.innerHTML = items.map(it =>
-              `<li><span>${it.name}</span> — ${it.noteFr}</li>`
-            ).join('');
+            drawDraft(items);
           }
         })
         .catch(() => {});
@@ -415,20 +474,34 @@
         .catch(() => { resourcesGrid.innerHTML = '<p class="empty-state">Impossible de charger le market.</p>'; });
     };
 
+    // Rendu instantané depuis le cache local pour éviter le clignotement
+    const cachedResources = localStorage.getItem('admin_resources');
+    if (cachedResources) {
+      try {
+        const parsed = JSON.parse(cachedResources);
+        if (parsed && Array.isArray(parsed.resources)) {
+          allResources = parsed.resources;
+          renderResources();
+        }
+      } catch (err) {}
+    }
+
     if (typeof db !== 'undefined' && db) {
       db.collection('portfolio_data').doc('admin_resources').get()
         .then(doc => {
           if (doc.exists && doc.data().value && Array.isArray(doc.data().value.resources) && doc.data().value.resources.length) {
             allResources = doc.data().value.resources;
             renderResources();
-          } else {
+          } else if (!cachedResources) {
             fetchResources();
           }
         })
         .catch(() => {
-          fetchResources();
+          if (!cachedResources) {
+            fetchResources();
+          }
         });
-    } else {
+    } else if (!cachedResources) {
       fetchResources();
     }
   }
@@ -1159,7 +1232,14 @@
       db.collection('portfolio_data').onSnapshot((snapshot) => {
         let dataVal = {};
         snapshot.forEach(doc => {
-          dataVal[doc.id] = doc.data();
+          const d = doc.data();
+          dataVal[doc.id] = d;
+          // Sauvegarde dans le cache de rendu local pour éviter le clignotement
+          if (d && d.value !== undefined) {
+            try {
+              localStorage.setItem(doc.id, JSON.stringify(d.value));
+            } catch (err) {}
+          }
         });
 
         if (Object.keys(dataVal).length > 0) {
