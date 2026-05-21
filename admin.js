@@ -79,9 +79,11 @@
         db.collection('portfolio_data').doc(key).set({ value: parsed })
           .then(() => {
             console.log(`[Firebase Cloud] Synchronisation réussie pour [${key}]`);
+            toast(`☁️ Sauvegardé dans le Cloud !`);
           })
           .catch((error) => {
             console.error(`Erreur de synchronisation Cloud pour [${key}] :`, error);
+            toast(`⚠️ Erreur Cloud : enregistré en local.`);
           });
       } catch (e) {
         console.warn(`[Cloud] Valeur non-JSON ignorée pour [${key}]`);
@@ -644,9 +646,9 @@
     const KEY = 'admin_experience';
 
     const defaults = [
-      { id:'e1', dateFr:'2024 — Présent', dateEn:'2024 — Present', roleFr:'Designer & développeur indépendant', roleEn:'Independent designer & developer', descFr:'Conception et développement de sites et identités visuelles.', descEn:'Designing and building websites and visual identities.' },
-      { id:'e2', dateFr:'2022 — 2024', dateEn:'2022 — 2024', roleFr:'Projet personnel — thesouscote', roleEn:'Personal project — thesouscote', descFr:'Création de contenu, streaming et exploration créative.', descEn:'Content creation, streaming and creative exploration.' },
-      { id:'e3', dateFr:'Avant 2022', dateEn:'Before 2022', roleFr:'Apprentissage', roleEn:'Learning', descFr:'Découverte du design, du code et de la typographie.', descEn:'Discovering design, code and typography.' }
+      { id:'e1', dateFr:'2024 — Présent', roleFr:'Designer & développeur indépendant', descFr:'Conception et développement de sites et identités visuelles.' },
+      { id:'e2', dateFr:'2022 — 2024', roleFr:'Projet personnel — thesouscote', descFr:'Création de contenu, streaming et exploration créative.' },
+      { id:'e3', dateFr:'Avant 2022', roleFr:'Apprentissage', descFr:'Découverte du design, du code et de la typographie.' }
     ];
 
     let items = [];
@@ -729,11 +731,8 @@
       const d = {
         id: eId.value || newId(),
         dateFr: document.getElementById('exp-date-fr').value.trim(),
-        dateEn: '',
         roleFr: document.getElementById('exp-role-fr').value.trim(),
-        roleEn: '',
-        descFr: document.getElementById('exp-desc-fr').value.trim(),
-        descEn: ''
+        descFr: document.getElementById('exp-desc-fr').value.trim()
       };
       if (eId.value) {
         const idx = items.findIndex(x => x.id === eId.value);

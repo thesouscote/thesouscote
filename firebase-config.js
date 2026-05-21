@@ -19,4 +19,14 @@ let db = null;
 if (typeof firebase !== 'undefined') {
   firebase.initializeApp(firebaseConfig);
   db = firebase.firestore();
+  
+  // Activer la persistance hors ligne de Firestore pour une stabilité réseau maximale sur mobile !
+  db.enablePersistence({ synchronizeTabs: true })
+    .catch((err) => {
+      if (err.code == 'failed-precondition') {
+        console.warn("La persistance Firestore a échoué (plusieurs onglets ouverts).");
+      } else if (err.code == 'unimplemented') {
+        console.warn("Ce navigateur ne supporte pas la persistance Firestore.");
+      }
+    });
 }

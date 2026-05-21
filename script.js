@@ -1304,6 +1304,8 @@
             } catch {}
           }
         }
+      }, (error) => {
+        console.warn("[Firebase Cloud] Erreur sur l'écouteur temps réel Firestore (onSnapshot) :", error);
       });
     } catch (e) {
       console.error("[Firebase Cloud] Erreur d'actualisation en temps réel :", e);
