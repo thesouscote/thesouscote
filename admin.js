@@ -1349,4 +1349,37 @@
       }
     });
   });
+
+  // ============================================================
+  // Synchronisation Cloud Supabase pour l'Admin (CMS Global)
+  // ============================================================
+  async function syncCloudDataOnAdminStartup() {
+    if (typeof supabase === 'undefined' || !supabase) return;
+    try {
+      const { data, error } = await supabase.from('portfolio_data').select('*');
+      if (!error && data) {
+        let hasChanges = false;
+        data.forEach(row => {
+          const localVal = localStorage.getItem(row.key);
+          const newValString = JSON.stringify(row.value);
+          if (localVal !== newValString) {
+            localStorage.setItem(row.key, newValString);
+            hasChanges = true;
+          }
+        });
+        
+        // S'il y a des données neuves reçues de Supabase (ex: modifiées sur mobile),
+        // on recharge l'admin pour afficher ces nouvelles valeurs à l'écran.
+        if (hasChanges) {
+          console.log("[Supabase Cloud Admin] Données fraîches détectées ! Rechargement...");
+          location.reload();
+        }
+      }
+    } catch (e) {
+      console.error("[Supabase Cloud Admin] Erreur lors du chargement initial :", e);
+    }
+  }
+
+  // Lance le pull Supabase Cloud au démarrage
+  syncCloudDataOnAdminStartup();
 })();
