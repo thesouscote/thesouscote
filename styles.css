@@ -1113,9 +1113,9 @@ kbd {
   position: fixed;
   inset: 0;
   z-index: 300;
-  background: rgba(0, 0, 0, 0.30);
+  background: rgba(0, 0, 0, 0.50);
   backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(20px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1471,4 +1471,8 @@ kbd {
     background: transparent;
     box-shadow: none;
   }
+}
+
+body.no-scroll {
+  overflow: hidden !important;
 }

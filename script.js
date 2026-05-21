@@ -904,9 +904,12 @@
               const lb = document.createElement('div');
               lb.className = 'lightbox';
               lb.innerHTML = `<img src="${img.src}" alt="${img.alt}" />`;
+              document.body.classList.add('no-scroll');
+              
               const closeLb = () => {
                 if (lb.classList.contains('is-closing')) return;
                 lb.classList.add('is-closing');
+                document.body.classList.remove('no-scroll');
                 setTimeout(() => lb.remove(), 300);
               };
               lb.addEventListener('click', closeLb);
@@ -1034,9 +1037,12 @@
           const lb = document.createElement('div');
           lb.className = 'lightbox';
           lb.innerHTML = `<img src="${imgEl.src}" alt="${imgEl.alt}" />`;
+          document.body.classList.add('no-scroll');
+          
           const closeLb = () => {
             if (lb.classList.contains('is-closing')) return;
             lb.classList.add('is-closing');
+            document.body.classList.remove('no-scroll');
             setTimeout(() => lb.remove(), 300);
           };
           lb.addEventListener('click', closeLb);
