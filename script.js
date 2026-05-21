@@ -1163,7 +1163,8 @@
           console.log("[Supabase Cloud] Données mises à jour, rafraîchissement dynamique...");
           
           // Rafraîchit les Projets si on est sur la grille des projets
-          if (typeof renderProjects === 'function' && projectsGrid) {
+          const targetProjectsGrid = document.getElementById('projects-grid');
+          if (typeof renderProjects === 'function' && targetProjectsGrid) {
             const localProj = localStorage.getItem('projects');
             if (localProj) {
               try { renderProjects(JSON.parse(localProj).projects || []); } catch {}
@@ -1171,13 +1172,14 @@
           }
           
           // Rafraîchit la Bio et Skills si on est sur la page À propos
-          if (aboutBio) {
+          const targetAboutBio = document.getElementById('about-bio');
+          if (targetAboutBio) {
             const localAbout = localStorage.getItem('admin_about');
             if (localAbout) {
               try {
                 const dataA = JSON.parse(localAbout);
                 const lang = getLang();
-                aboutBio.innerHTML = lang === 'en' ? dataA.bioEn : dataA.bioFr;
+                targetAboutBio.innerHTML = lang === 'en' ? dataA.bioEn : dataA.bioFr;
                 const skillsList = document.getElementById('about-skills');
                 if (skillsList && dataA.skills) {
                   skillsList.innerHTML = dataA.skills.map(s => `<li>${lang === 'en' ? s.en : s.fr}</li>`).join('');
@@ -1187,13 +1189,14 @@
           }
           
           // Rafraîchit la Timeline si on est sur la page Expériences
-          if (expTimeline) {
+          const targetExpTimeline = document.getElementById('experience-timeline');
+          if (targetExpTimeline) {
             const localExp = localStorage.getItem('admin_experience');
             if (localExp) {
               try {
                 const items = JSON.parse(localExp);
                 const lang = getLang();
-                expTimeline.innerHTML = items.map(it => `
+                targetExpTimeline.innerHTML = items.map(it => `
                   <li class="timeline-item reveal">
                     <div class="timeline-date">${lang === 'en' ? it.dateEn : it.dateFr}</div>
                     <div class="timeline-body">
@@ -1202,18 +1205,20 @@
                     </div>
                   </li>
                 `).join('');
-                observeNewReveals(expTimeline);
+                observeNewReveals(targetExpTimeline);
               } catch {}
             }
           }
 
           // Rafraîchit la page Draft
-          if (typeof renderDraft === 'function' && draftList) {
+          const targetDraftList = document.getElementById('draft-list');
+          if (typeof renderDraft === 'function' && targetDraftList) {
             renderDraft();
           }
 
           // Rafraîchit le Market
-          if (typeof renderResources === 'function' && resourcesGrid) {
+          const targetResourcesGrid = document.getElementById('resources-grid');
+          if (typeof renderResources === 'function' && targetResourcesGrid) {
             const localRes = localStorage.getItem('admin_resources');
             if (localRes) {
               try {
