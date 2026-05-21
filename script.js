@@ -4,6 +4,11 @@
 (function () {
   const root = document.documentElement;
 
+  // Variables globales de rendu pour les mises à jour dynamiques
+  let renderProjects = null;
+  let renderResources = null;
+  let allResources = [];
+
   // ============================================================
   // i18n FR / EN
   // ============================================================
@@ -194,7 +199,7 @@
   // ============================================================
   const projectsGrid = document.getElementById('projects-grid');
   if (projectsGrid) {
-    const renderProjects = (list) => {
+    renderProjects = (list) => {
       projectsGrid.innerHTML = list.map((p) => {
         const imgUrl = typeof p.image === 'object' ? (p.image.url || '') : (p.image || '');
         return `
@@ -325,7 +330,6 @@
   // ============================================================
   const resourcesGrid = document.getElementById('resources-grid');
   if (resourcesGrid) {
-    let allResources = [];
     let activeFilter = 'all';
 
     // Détecte si le visiteur est en zone euro (timezone Europe/* ou langue européenne)
@@ -364,7 +368,7 @@
     };
 
     const renderResources = () => {
-      const filtered = allResources.filter((r) => {
+    t filtered = allResources.filter((r) => {
         if (activeFilter === 'all') return true;
         if (activeFilter === 'free') return !r.price || r.price === 0;
         return r.category === activeFilter;
@@ -1154,10 +1158,70 @@
           }
         });
         
-        // S'il y a des changements, on recharge pour afficher les nouveaux contenus du cloud
+        // Si des changements sont détectés, on met à jour l'affichage en direct sans recharger !
         if (hasChanges) {
-          console.log("[Supabase Cloud] Modifications détectées ! Actualisation de la page...");
-          location.reload();
+          console.log("[Supabase Cloud] Données mises à jour, rafraîchissement dynamique...");
+          
+          // Rafraîchit les Projets si on est sur la grille des projets
+          if (typeof renderProjects === 'function' && projectsGrid) {
+            const localProj = localStorage.getItem('projects');
+            if (localProj) {
+              try { renderProjects(JSON.parse(localProj).projects || []); } catch {}
+            }
+          }
+          
+          // Rafraîchit la Bio et Skills si on est sur la page À propos
+          if (aboutBio) {
+            const localAbout = localStorage.getItem('admin_about');
+            if (localAbout) {
+              try {
+                const dataA = JSON.parse(localAbout);
+                const lang = getLang();
+                aboutBio.innerHTML = lang === 'en' ? dataA.bioEn : dataA.bioFr;
+                const skillsList = document.getElementById('about-skills');
+                if (skillsList && dataA.skills) {
+                  skillsList.innerHTML = dataA.skills.map(s => `<li>${lang === 'en' ? s.en : s.fr}</li>`).join('');
+                }
+              } catch {}
+            }
+          }
+          
+          // Rafraîchit la Timeline si on est sur la page Expériences
+          if (expTimeline) {
+            const localExp = localStorage.getItem('admin_experience');
+            if (localExp) {
+              try {
+                const items = JSON.parse(localExp);
+                const lang = getLang();
+                expTimeline.innerHTML = items.map(it => `
+                  <li class="timeline-item reveal">
+                    <div class="timeline-date">${lang === 'en' ? it.dateEn : it.dateFr}</div>
+                    <div class="timeline-body">
+                      <h3>${lang === 'en' ? it.roleEn : it.roleFr}</h3>
+                      <p>${lang === 'en' ? it.descEn : it.descFr}</p>
+                    </div>
+                  </li>
+                `).join('');
+                observeNewReveals(expTimeline);
+              } catch {}
+            }
+          }
+
+          // Rafraîchit la page Draft
+          if (typeof renderDraft === 'function' && draftList) {
+            renderDraft();
+          }
+
+          // Rafraîchit le Market
+          if (typeof renderResources === 'function' && resourcesGrid) {
+            const localRes = localStorage.getItem('admin_resources');
+            if (localRes) {
+              try {
+                allResources = JSON.parse(localRes).resources || [];
+                renderResources();
+              } catch {}
+            }
+          }
         }
       }
     } catch (e) {
