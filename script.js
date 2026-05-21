@@ -219,12 +219,30 @@
       applyI18n(getLang());
     };
 
-    // Source : localStorage (admin) sinon fetch JSON
-    const localData = localStorage.getItem('projects');
-    if (localData) {
-      try { renderProjects(JSON.parse(localData).projects || []); }
-      catch { /* ignore */ }
+    // Chargement initial depuis Firebase Realtime Database
+    if (typeof db !== 'undefined' && db) {
+      db.ref('portfolio_data/projects').once('value')
+        .then(snapshot => {
+          const val = snapshot.val();
+          if (val && val.value) {
+            renderProjects(val.value.projects || []);
+          } else {
+            // Fallback JSON par défaut si vide
+            fetch('projects.json')
+              .then((r) => r.json())
+              .then((data) => renderProjects(data.projects || []))
+              .catch(() => { projectsGrid.innerHTML = '<p>Impossible de charger les projets.</p>'; });
+          }
+        })
+        .catch(() => {
+          // Fallback JSON
+          fetch('projects.json')
+            .then((r) => r.json())
+            .then((data) => renderProjects(data.projects || []))
+            .catch(() => { projectsGrid.innerHTML = '<p>Impossible de charger les projets.</p>'; });
+        });
     } else {
+      // Fallback JSON
       fetch('projects.json')
         .then((r) => r.json())
         .then((data) => renderProjects(data.projects || []))
@@ -233,95 +251,113 @@
   }
 
   // ============================================================
-  // Rendu dynamique — À propos (depuis admin localStorage)
+  // Rendu dynamique — À propos (depuis Firebase)
   // ============================================================
   const aboutBio = document.getElementById('about-bio');
   if (aboutBio) {
-    try {
-      const data = JSON.parse(localStorage.getItem('admin_about'));
-      if (data) {
-        const lang = getLang();
-        // Bio
-        aboutBio.innerHTML = lang === 'en' ? data.bioEn : data.bioFr;
-        // Skills
-        const skillsList = document.getElementById('about-skills');
-        if (skillsList && data.skills) {
-          skillsList.innerHTML = data.skills.map(s =>
-            `<li>${lang === 'en' ? s.en : s.fr}</li>`
-          ).join('');
-        }
-        // CV link
-        const cvLink = document.getElementById('about-cv-link');
-        if (cvLink && data.cv) cvLink.href = data.cv;
-      }
-    } catch { /* ignore */ }
+    if (typeof db !== 'undefined' && db) {
+      db.ref('portfolio_data/admin_about').once('value')
+        .then(snapshot => {
+          const val = snapshot.val();
+          if (val && val.value) {
+            const data = val.value;
+            const lang = getLang();
+            // Bio
+            aboutBio.innerHTML = lang === 'en' ? data.bioEn : data.bioFr;
+            // Skills
+            const skillsList = document.getElementById('about-skills');
+            if (skillsList && data.skills) {
+              skillsList.innerHTML = data.skills.map(s =>
+                `<li>${lang === 'en' ? s.en : s.fr}</li>`
+              ).join('');
+            }
+            // CV link
+            const cvLink = document.getElementById('about-cv-link');
+            if (cvLink && data.cv) cvLink.href = data.cv;
+          }
+        })
+        .catch(() => {});
+    }
   }
 
   // ============================================================
-  // Rendu dynamique — Expérience (depuis admin localStorage)
+  // Rendu dynamique — Expérience (depuis Firebase)
   // ============================================================
   const expTimeline = document.getElementById('experience-timeline');
   if (expTimeline) {
-    try {
-      const items = JSON.parse(localStorage.getItem('admin_experience'));
-      if (items && items.length) {
-        const lang = getLang();
-        expTimeline.innerHTML = items.map(it => `
-          <li class="timeline-item reveal">
-            <div class="timeline-date">${lang === 'en' ? it.dateEn : it.dateFr}</div>
-            <div class="timeline-body">
-              <h3>${lang === 'en' ? it.roleEn : it.roleFr}</h3>
-              <p>${lang === 'en' ? it.descEn : it.descFr}</p>
-            </div>
-          </li>
-        `).join('');
-        // re-observe reveals
-        observeNewReveals(expTimeline);
-      }
-    } catch { /* ignore */ }
+    if (typeof db !== 'undefined' && db) {
+      db.ref('portfolio_data/admin_experience').once('value')
+        .then(snapshot => {
+          const items = snapshot.val() ? snapshot.val().value : null;
+          if (items && items.length) {
+            const lang = getLang();
+            expTimeline.innerHTML = items.map(it => `
+              <li class="timeline-item reveal">
+                <div class="timeline-date">${lang === 'en' ? it.dateEn : it.dateFr}</div>
+                <div class="timeline-body">
+                  <h3>${lang === 'en' ? it.roleEn : it.roleFr}</h3>
+                  <p>${lang === 'en' ? it.descEn : it.descFr}</p>
+                </div>
+              </li>
+            `).join('');
+            // re-observe reveals
+            observeNewReveals(expTimeline);
+          }
+        })
+        .catch(() => {});
+    }
   }
 
   // ============================================================
-  // Rendu dynamique — Contact (depuis admin localStorage)
+  // Rendu dynamique — Contact (depuis Firebase)
   // ============================================================
   const contactEmail = document.getElementById('contact-email-link');
   if (contactEmail) {
-    try {
-      const data = JSON.parse(localStorage.getItem('admin_contact'));
-      if (data) {
-        if (data.email) {
-          contactEmail.href = 'mailto:' + data.email;
-          contactEmail.textContent = data.email;
-        }
-        const socialsDiv = document.getElementById('contact-socials');
-        if (socialsDiv && data.socials) {
-          socialsDiv.innerHTML = data.socials
-            .filter(s => s.name && s.url)
-            .map((s, i, arr) => {
-              let html = `<a href="${s.url}" target="_blank" rel="noopener">${s.name}</a>`;
-              if (i < arr.length - 1) html += '<span>·</span>';
-              return html;
-            }).join('\n          ');
-        }
-      }
-    } catch { /* ignore */ }
+    if (typeof db !== 'undefined' && db) {
+      db.ref('portfolio_data/admin_contact').once('value')
+        .then(snapshot => {
+          const val = snapshot.val();
+          if (val && val.value) {
+            const data = val.value;
+            if (data.email) {
+              contactEmail.href = 'mailto:' + data.email;
+              contactEmail.textContent = data.email;
+            }
+            const socialsDiv = document.getElementById('contact-socials');
+            if (socialsDiv && data.socials) {
+              socialsDiv.innerHTML = data.socials
+                .filter(s => s.name && s.url)
+                .map((s, i, arr) => {
+                  let html = `<a href="${s.url}" target="_blank" rel="noopener">${s.name}</a>`;
+                  if (i < arr.length - 1) html += '<span>·</span>';
+                  return html;
+                }).join('\n          ');
+            }
+          }
+        })
+        .catch(() => {});
+    }
   }
 
   // ============================================================
-  // Rendu dynamique — Draft (depuis admin localStorage)
+  // Rendu dynamique — Draft (depuis Firebase)
   // ============================================================
   const draftList = document.getElementById('draft-list');
   const renderDraft = () => {
     if (!draftList) return;
-    try {
-      const items = JSON.parse(localStorage.getItem('admin_trash'));
-      if (items && items.length) {
-        const lang = getLang();
-        draftList.innerHTML = items.map(it =>
-          `<li><span>${it.name}</span> — ${lang === 'en' ? it.noteEn : it.noteFr}</li>`
-        ).join('');
-      }
-    } catch { /* ignore */ }
+    if (typeof db !== 'undefined' && db) {
+      db.ref('portfolio_data/admin_trash').once('value')
+        .then(snapshot => {
+          const items = snapshot.val() ? snapshot.val().value : null;
+          if (items && items.length) {
+            const lang = getLang();
+            draftList.innerHTML = items.map(it =>
+              `<li><span>${it.name}</span> — ${lang === 'en' ? it.noteEn : it.noteFr}</li>`
+            ).join('');
+          }
+        })
+        .catch(() => {});
+    }
   };
   renderDraft();
 
@@ -409,26 +445,31 @@
       });
     });
 
-    // Source : localStorage en priorité, sinon fetch JSON. Fallback fetch si vide.
+    // Source : Firebase en priorité, fallback JSON si vide.
     const fetchResources = () => {
       fetch('market.json')
         .then((r) => r.json())
         .then((data) => { allResources = data.resources || []; renderResources(); })
         .catch(() => { resourcesGrid.innerHTML = '<p class="empty-state">Impossible de charger le market.</p>'; });
     };
-    const localData = localStorage.getItem('admin_resources');
-    let usedLocal = false;
-    if (localData) {
-      try {
-        const parsed = JSON.parse(localData);
-        if (parsed && Array.isArray(parsed.resources) && parsed.resources.length) {
-          allResources = parsed.resources;
-          renderResources();
-          usedLocal = true;
-        }
-      } catch { /* ignore */ }
+
+    if (typeof db !== 'undefined' && db) {
+      db.ref('portfolio_data/admin_resources').once('value')
+        .then(snapshot => {
+          const val = snapshot.val();
+          if (val && val.value && Array.isArray(val.value.resources) && val.value.resources.length) {
+            allResources = val.value.resources;
+            renderResources();
+          } else {
+            fetchResources();
+          }
+        })
+        .catch(() => {
+          fetchResources();
+        });
+    } else {
+      fetchResources();
     }
-    if (!usedLocal) fetchResources();
   }
 
   // ============================================================
@@ -1145,99 +1186,82 @@
   }
 
   // ============================================================
-  // Synchronisation Cloud Firebase en arrière-plan (CMS Global)
+  // Synchronisation Cloud Firebase en temps réel (CMS Global)
   // ============================================================
-  async function syncCloudDataAndRefresh() {
+  function syncCloudDataAndRefresh() {
     if (typeof db === 'undefined' || !db) return;
     try {
-      const snapshot = await db.ref('portfolio_data').once('value');
-      const dataVal = snapshot.val();
-      if (dataVal) {
-        let hasChanges = false;
-        Object.keys(dataVal).forEach(key => {
-          const value = dataVal[key].value;
+      // On s'abonne aux changements Firebase en temps réel (.on('value')) !
+      db.ref('portfolio_data').on('value', (snapshot) => {
+        const dataVal = snapshot.val();
+        if (dataVal) {
+          console.log("[Firebase Cloud] Données mises à jour, actualisation dynamique de l'affichage...");
           
-          const localVal = localStorage.getItem(key);
-          const newValString = JSON.stringify(value);
-          if (localVal !== newValString) {
-            localStorage.setItem(key, newValString);
-            hasChanges = true;
-          }
-        });
-        
-        // Si des changements sont détectés, on met à jour l'affichage en direct sans recharger !
-        if (hasChanges) {
-          console.log("[Firebase Cloud] Données mises à jour, rafraîchissement dynamique...");
-          
-          // Rafraîchit les Projets si on est sur la grille des projets
+          // 1. Rafraîchit les Projets si on est sur la grille des projets
           const targetProjectsGrid = document.getElementById('projects-grid');
-          if (typeof renderProjects === 'function' && targetProjectsGrid) {
-            const localProj = localStorage.getItem('projects');
-            if (localProj) {
-              try { renderProjects(JSON.parse(localProj).projects || []); } catch {}
-            }
+          if (typeof renderProjects === 'function' && targetProjectsGrid && dataVal.projects) {
+            try { renderProjects(dataVal.projects.value.projects || []); } catch {}
           }
           
-          // Rafraîchit la Bio et Skills si on est sur la page À propos
+          // 2. Rafraîchit la Bio et Skills si on est sur la page À propos
           const targetAboutBio = document.getElementById('about-bio');
-          if (targetAboutBio) {
-            const localAbout = localStorage.getItem('admin_about');
-            if (localAbout) {
-              try {
-                const dataA = JSON.parse(localAbout);
-                const lang = getLang();
-                targetAboutBio.innerHTML = lang === 'en' ? dataA.bioEn : dataA.bioFr;
-                const skillsList = document.getElementById('about-skills');
-                if (skillsList && dataA.skills) {
-                  skillsList.innerHTML = dataA.skills.map(s => `<li>${lang === 'en' ? s.en : s.fr}</li>`).join('');
-                }
-              } catch {}
-            }
+          if (targetAboutBio && dataVal.admin_about) {
+            try {
+              const dataA = dataVal.admin_about.value;
+              const lang = getLang();
+              targetAboutBio.innerHTML = lang === 'en' ? dataA.bioEn : dataA.bioFr;
+              const skillsList = document.getElementById('about-skills');
+              if (skillsList && dataA.skills) {
+                skillsList.innerHTML = dataA.skills.map(s => `<li>${lang === 'en' ? s.en : s.fr}</li>`).join('');
+              }
+              const cvLink = document.getElementById('about-cv-link');
+              if (cvLink && dataA.cv) cvLink.href = dataA.cv;
+            } catch {}
           }
           
-          // Rafraîchit la Timeline si on est sur la page Expériences
+          // 3. Rafraîchit la Timeline si on est sur la page Expériences
           const targetExpTimeline = document.getElementById('experience-timeline');
-          if (targetExpTimeline) {
-            const localExp = localStorage.getItem('admin_experience');
-            if (localExp) {
-              try {
-                const items = JSON.parse(localExp);
-                const lang = getLang();
-                targetExpTimeline.innerHTML = items.map(it => `
-                  <li class="timeline-item reveal">
-                    <div class="timeline-date">${lang === 'en' ? it.dateEn : it.dateFr}</div>
-                    <div class="timeline-body">
-                      <h3>${lang === 'en' ? it.roleEn : it.roleFr}</h3>
-                      <p>${lang === 'en' ? it.descEn : it.descFr}</p>
-                    </div>
-                  </li>
-                `).join('');
-                observeNewReveals(targetExpTimeline);
-              } catch {}
-            }
+          if (targetExpTimeline && dataVal.admin_experience) {
+            try {
+              const items = dataVal.admin_experience.value;
+              const lang = getLang();
+              targetExpTimeline.innerHTML = items.map(it => `
+                <li class="timeline-item reveal">
+                  <div class="timeline-date">${lang === 'en' ? it.dateEn : it.dateFr}</div>
+                  <div class="timeline-body">
+                    <h3>${lang === 'en' ? it.roleEn : it.roleFr}</h3>
+                    <p>${lang === 'en' ? it.descEn : it.descFr}</p>
+                  </div>
+                </li>
+              `).join('');
+              observeNewReveals(targetExpTimeline);
+            } catch {}
           }
 
-          // Rafraîchit la page Draft
+          // 4. Rafraîchit la page Draft
           const targetDraftList = document.getElementById('draft-list');
-          if (typeof renderDraft === 'function' && targetDraftList) {
-            renderDraft();
+          if (typeof renderDraft === 'function' && targetDraftList && dataVal.admin_trash) {
+            try {
+              const items = dataVal.admin_trash.value;
+              const lang = getLang();
+              targetDraftList.innerHTML = items.map(it =>
+                `<li><span>${it.name}</span> — ${lang === 'en' ? it.noteEn : it.noteFr}</li>`
+              ).join('');
+            } catch {}
           }
 
-          // Rafraîchit le Market
+          // 5. Rafraîchit le Market
           const targetResourcesGrid = document.getElementById('resources-grid');
-          if (typeof renderResources === 'function' && targetResourcesGrid) {
-            const localRes = localStorage.getItem('admin_resources');
-            if (localRes) {
-              try {
-                allResources = JSON.parse(localRes).resources || [];
-                renderResources();
-              } catch {}
-            }
+          if (typeof renderResources === 'function' && targetResourcesGrid && dataVal.admin_resources) {
+            try {
+              allResources = dataVal.admin_resources.value.resources || [];
+              renderResources();
+            } catch {}
           }
         }
-      }
+      });
     } catch (e) {
-      console.error("[Supabase Cloud] Erreur d'actualisation en arrière-plan :", e);
+      console.error("[Firebase Cloud] Erreur d'actualisation en temps réel :", e);
     }
   }
 
