@@ -662,6 +662,7 @@
     const eId = document.getElementById('exp-id');
     const formTitle = document.getElementById('exp-form-title');
     const selectLink = document.getElementById('exp-project-link');
+    const extLinkInput = document.getElementById('exp-external-link');
 
     function populateProjectSelect() {
       if (!selectLink) return;
@@ -705,7 +706,14 @@
       } catch {}
 
       list.innerHTML = items.map((it, i) => {
-        const linkedTitle = it.projectLink ? (projectsMap[it.projectLink] || 'Projet inconnu') : null;
+        let linkedTitle = null;
+        if (it.projectLink) {
+          if (it.projectLink.startsWith('http://') || it.projectLink.startsWith('https://')) {
+            linkedTitle = `Lien externe (${it.projectLink})`;
+          } else {
+            linkedTitle = projectsMap[it.projectLink] || 'Projet inconnu';
+          }
+        }
         return `
         <li class="admin-item admin-item--no-thumb">
           <div class="admin-item-body">
@@ -752,7 +760,15 @@
       document.getElementById('exp-date-fr').value = it.dateFr || '';
       document.getElementById('exp-role-fr').value = it.roleFr || '';
       document.getElementById('exp-desc-fr').value = it.descFr || '';
-      if (selectLink) selectLink.value = it.projectLink || '';
+      
+      if (it.projectLink && (it.projectLink.startsWith('http://') || it.projectLink.startsWith('https://'))) {
+        if (extLinkInput) extLinkInput.value = it.projectLink;
+        if (selectLink) selectLink.value = '';
+      } else {
+        if (extLinkInput) extLinkInput.value = '';
+        if (selectLink) selectLink.value = it.projectLink || '';
+      }
+      
       document.getElementById('exp-submit').textContent = 'Mettre à jour';
       formTitle.textContent = "Modifier l'expérience";
       form.scrollIntoView({ behavior: 'smooth' });
@@ -762,18 +778,20 @@
       form.reset();
       eId.value = '';
       if (selectLink) selectLink.value = '';
+      if (extLinkInput) extLinkInput.value = '';
       document.getElementById('exp-submit').textContent = 'Ajouter';
       formTitle.textContent = 'Ajouter une expérience';
     }
 
     form.addEventListener('submit', e => {
       e.preventDefault();
+      const extVal = extLinkInput ? extLinkInput.value.trim() : '';
       const d = {
         id: eId.value || newId(),
         dateFr: document.getElementById('exp-date-fr').value.trim(),
         roleFr: document.getElementById('exp-role-fr').value.trim(),
         descFr: document.getElementById('exp-desc-fr').value.trim(),
-        projectLink: selectLink ? selectLink.value : ''
+        projectLink: extVal || (selectLink ? selectLink.value : '')
       };
       if (eId.value) {
         const idx = items.findIndex(x => x.id === eId.value);

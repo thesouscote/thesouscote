@@ -271,20 +271,29 @@
   if (expTimeline) {
     const cachedExp = localStorage.getItem('admin_experience');
     const renderExp = (items) => {
-      expTimeline.innerHTML = items.map(it => `
-        <li class="timeline-item reveal">
-          <div class="timeline-date">${it.dateFr}</div>
-          <div class="timeline-body">
-            <h3>${it.roleFr}</h3>
-            <p>${it.descFr}</p>
-            ${it.projectLink ? `
-              <a href="project-detail.html#${it.projectLink}" class="timeline-project-link" style="display:inline-flex; align-items:center; gap:6px; font-size:13px; margin-top:8px; font-weight:600; text-decoration:none; color:var(--primary); transition: opacity 0.2s;" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                Voir le projet associé
-              </a>` : ''}
-          </div>
-        </li>
-      `).join('');
+      expTimeline.innerHTML = items.map(it => {
+        let linkHTML = '';
+        if (it.projectLink) {
+          const isExt = it.projectLink.startsWith('http://') || it.projectLink.startsWith('https://');
+          const href = isExt ? it.projectLink : `project-detail.html#${it.projectLink}`;
+          const target = isExt ? 'target="_blank" rel="noopener"' : '';
+          const text = isExt ? 'Visiter le site associé' : 'Voir le projet associé';
+          linkHTML = `
+            <a href="${href}" ${target} class="timeline-project-link" style="display:inline-flex; align-items:center; gap:6px; font-size:13px; margin-top:8px; font-weight:600; text-decoration:none; color:var(--primary); transition: opacity 0.2s;" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              ${text}
+            </a>`;
+        }
+        return `
+          <li class="timeline-item reveal">
+            <div class="timeline-date">${it.dateFr}</div>
+            <div class="timeline-body">
+              <h3>${it.roleFr}</h3>
+              <p>${it.descFr}</p>
+              ${linkHTML}
+            </div>
+          </li>`;
+      }).join('');
       // re-observe reveals
       observeNewReveals(expTimeline);
     };
@@ -1305,20 +1314,29 @@
           if (targetExpTimeline && dataVal.admin_experience) {
             try {
               const items = dataVal.admin_experience.value;
-              targetExpTimeline.innerHTML = items.map(it => `
-                <li class="timeline-item reveal">
-                  <div class="timeline-date">${it.dateFr}</div>
-                  <div class="timeline-body">
-                    <h3>${it.roleFr}</h3>
-                    <p>${it.descFr}</p>
-                    ${it.projectLink ? `
-                      <a href="project-detail.html#${it.projectLink}" class="timeline-project-link" style="display:inline-flex; align-items:center; gap:6px; font-size:13px; margin-top:8px; font-weight:600; text-decoration:none; color:var(--primary); transition: opacity 0.2s;" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                        Voir le projet associé
-                      </a>` : ''}
-                  </div>
-                </li>
-              `).join('');
+              targetExpTimeline.innerHTML = items.map(it => {
+                let linkHTML = '';
+                if (it.projectLink) {
+                  const isExt = it.projectLink.startsWith('http://') || it.projectLink.startsWith('https://');
+                  const href = isExt ? it.projectLink : `project-detail.html#${it.projectLink}`;
+                  const target = isExt ? 'target="_blank" rel="noopener"' : '';
+                  const text = isExt ? 'Visiter le site associé' : 'Voir le projet associé';
+                  linkHTML = `
+                    <a href="${href}" ${target} class="timeline-project-link" style="display:inline-flex; align-items:center; gap:6px; font-size:13px; margin-top:8px; font-weight:600; text-decoration:none; color:var(--primary); transition: opacity 0.2s;" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                      ${text}
+                    </a>`;
+                }
+                return `
+                  <li class="timeline-item reveal">
+                    <div class="timeline-date">${it.dateFr}</div>
+                    <div class="timeline-body">
+                      <h3>${it.roleFr}</h3>
+                      <p>${it.descFr}</p>
+                      ${linkHTML}
+                    </div>
+                  </li>`;
+              }).join('');
               observeNewReveals(targetExpTimeline);
             } catch {}
           }
