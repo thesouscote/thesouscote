@@ -8,6 +8,7 @@
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
   <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
   <script>(function(){try{var t=localStorage.getItem('theme');if(!t)t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+  <script>(function(){if(sessionStorage.getItem('admin-ok')==='1')document.documentElement.setAttribute('data-authed','1');})();</script>
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="admin-styles.css" />
   <link rel="icon" type="image/svg+xml" href="assets/logo/Logo-thesouscote-noir.svg" />
@@ -16,8 +17,11 @@
   <nav class="nav">
     <div class="nav-inner">
       <a href="index.html" class="brand">
-        <img src="assets/logo/Logo-thesouscote-noir.svg" alt="thesouscote" class="brand-logo brand-logo-light" />
-        <img src="assets/logo/Logo-thesouscote-blanc.svg" alt="thesouscote" class="brand-logo brand-logo-dark" />
+        <svg class="logo-svg" width="572" height="572" viewBox="0 0 572 572.004" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="thesouscote">
+          <path class="logo-arrow logo-arrow--top" d="M285.999 0L411.949 188.789H319.191V332.495H252.807V188.789H160.05L285.999 0Z" fill="currentColor"/>
+          <path class="logo-arrow logo-arrow--left" d="M251.898 428.299L125.949 239.509L0 428.299H92.7567V572.004H159.141V428.299H251.898Z" fill="currentColor"/>
+          <path class="logo-arrow logo-arrow--right" d="M446.052 239.509L572.001 428.299H479.245V572.004H412.86V428.299H320.103L446.052 239.509Z" fill="currentColor"/>
+        </svg>
       </a>
       <ul class="nav-links">
         <li><a href="projects.html">← Voir le site</a></li>
@@ -31,7 +35,7 @@
     </div>
   </nav>
 
-  <!-- Gate mot de passe -->
+  <!-- Gate mot de passe (masqué instantanément si déjà authentifié) -->
   <div id="gate" class="gate">
     <div class="gate-box">
       <div class="gate-logo">
@@ -77,9 +81,9 @@
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
             Market
           </button>
-          <button class="sidebar-link" data-tab="poubelle">
+          <button class="sidebar-link" data-tab="draft">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-            Poubelle
+            Draft
           </button>
           <button class="sidebar-link" data-tab="deliveries">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
@@ -137,62 +141,40 @@
               <label for="f-description">Description</label>
               <textarea id="f-description" rows="3" required placeholder="Décrivez le projet en quelques lignes…"></textarea>
             </div>
+            <div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+              <div class="form-group">
+                <label for="f-date">Date</label>
+                <input type="text" id="f-date" placeholder="2024" />
+              </div>
+              <div class="form-group">
+                <label for="f-client">Client</label>
+                <input type="text" id="f-client" placeholder="Personnel, Freelance…" />
+              </div>
+              <div class="form-group">
+                <label for="f-stack">Stack</label>
+                <input type="text" id="f-stack" placeholder="Figma, Illustrator…" />
+              </div>
+            </div>
             <div class="form-grid">
               <div class="form-group">
                 <label for="f-link">Lien</label>
                 <div style="display: flex; gap: 8px;">
-                  <input type="url" id="f-link" placeholder="https://…" style="flex:1;" />
+                  <input type="url" id="f-link" placeholder="https://…" style="flex:1; height:36px; box-sizing:border-box;" />
                   <button type="button" class="btn btn-ghost paste-btn" data-target="f-link" style="padding: 0 12px; margin: 0; min-height: 36px; height: 36px; line-height: 34px;">Coller</button>
                 </div>
               </div>
               <div class="form-group">
                 <label for="f-image">Image (URL)</label>
                 <div style="display: flex; gap: 8px;">
-                  <label for="f-image-downloadable" style="margin-left:8px;"><input type="checkbox" id="f-image-downloadable" checked> Téléchargeable</label>
+                  <input type="text" id="f-image" placeholder="assets/img/..." style="flex:1; height:36px; box-sizing:border-box;" />
                   <button type="button" class="btn btn-ghost paste-btn" data-target="f-image" style="padding: 0 12px; margin: 0; min-height: 36px; height: 36px; line-height: 34px;">Coller</button>
                 </div>
               </div>
             </div>
             <div class="form-group" style="margin-top:24px;">
-              <label>Galerie d'images (1 à 4 visuels)</label>
-              <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 12px;">
-                <!-- Image 1 -->
-                <div style="display: flex; gap: 8px;">
-                  <label for="f-gallery-downloadable-1" style="margin-left:8px;"><input type="checkbox" id="f-gallery-downloadable-1" checked> Téléchargeable</label>
-                  <button type="button" class="btn btn-ghost paste-btn" data-target="f-gallery-1" style="padding: 0 12px; margin: 0; height: 36px; line-height: 34px;">Coller</button>
-                  <label class="file-upload-label" title="Importer l'image 1" style="margin:0; min-width:auto; padding:0 12px; display:flex; align-items:center; justify-content:center; height: 36px;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                    <input type="file" id="f-gallery-file-1" accept="image/*" hidden />
-                  </label>
-                </div>
-                <!-- Image 2 -->
-                <div style="display: flex; gap: 8px;">
-                  <label for="f-gallery-downloadable-2" style="margin-left:8px;"><input type="checkbox" id="f-gallery-downloadable-2" checked> Téléchargeable</label>
-                  <button type="button" class="btn btn-ghost paste-btn" data-target="f-gallery-2" style="padding: 0 12px; margin: 0; height: 36px; line-height: 34px;">Coller</button>
-                  <label class="file-upload-label" title="Importer l'image 2" style="margin:0; min-width:auto; padding:0 12px; display:flex; align-items:center; justify-content:center; height: 36px;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                    <input type="file" id="f-gallery-file-2" accept="image/*" hidden />
-                  </label>
-                </div>
-                <!-- Image 3 -->
-                <div style="display: flex; gap: 8px;">
-                  <label for="f-gallery-downloadable-3" style="margin-left:8px;"><input type="checkbox" id="f-gallery-downloadable-3" checked> Téléchargeable</label>
-                  <button type="button" class="btn btn-ghost paste-btn" data-target="f-gallery-3" style="padding: 0 12px; margin: 0; height: 36px; line-height: 34px;">Coller</button>
-                  <label class="file-upload-label" title="Importer l'image 3" style="margin:0; min-width:auto; padding:0 12px; display:flex; align-items:center; justify-content:center; height: 36px;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                    <input type="file" id="f-gallery-file-3" accept="image/*" hidden />
-                  </label>
-                </div>
-                <!-- Image 4 -->
-                <div style="display: flex; gap: 8px;">
-                  <label for="f-gallery-downloadable-4" style="margin-left:8px;"><input type="checkbox" id="f-gallery-downloadable-4" checked> Téléchargeable</label>
-                  <button type="button" class="btn btn-ghost paste-btn" data-target="f-gallery-4" style="padding: 0 12px; margin: 0; height: 36px; line-height: 34px;">Coller</button>
-                  <label class="file-upload-label" title="Importer l'image 4" style="margin:0; min-width:auto; padding:0 12px; display:flex; align-items:center; justify-content:center; height: 36px;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                    <input type="file" id="f-gallery-file-4" accept="image/*" hidden />
-                  </label>
-                </div>
-              </div>
+              <label>Galerie d'images</label>
+              <div id="gallery-rows" style="display:flex; flex-direction:column; gap:8px; margin-top:12px;"></div>
+              <button type="button" id="add-gallery-row" class="btn btn-ghost btn-sm" style="margin-top:8px;">+ Ajouter une image</button>
             </div>
             <div class="form-group" style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px;">
               <label class="file-upload-label">
@@ -363,29 +345,35 @@
             <div class="form-grid">
               <div class="form-group">
                 <label for="r-category">Catégorie</label>
-                <select id="r-category" required>
-                  <option value="logo">Logo</option>
-                  <option value="carte">Carte graphique</option>
-                  <option value="sticker">Sticker</option>
-                </select>
+                <select id="r-category" required></select>
+                <div class="cat-manager">
+                  <div class="cat-add-row">
+                    <input type="text" id="new-cat-input" placeholder="Nouvelle catégorie…" />
+                    <button type="button" id="add-cat-btn" class="btn btn-ghost btn-sm">+</button>
+                  </div>
+                  <div id="cat-tags"></div>
+                </div>
               </div>
               <div class="form-group">
-                <label for="r-price">Prix en FCFA (0 = gratuit)</label>
-                <input type="number" id="r-price" min="0" step="1" placeholder="0" />
+                <label for="r-price">Prix (0 = gratuit)</label>
+                <div class="currency-input-wrapper">
+                  <input type="number" id="r-price" min="0" step="1" placeholder="0" />
+                  <span class="currency-suffix">FCFA</span>
+                </div>
               </div>
             </div>
             <div class="form-grid">
               <div class="form-group">
                 <label for="r-link">Lien (achat ou téléchargement)</label>
                 <div style="display: flex; gap: 8px;">
-                  <input type="url" id="r-link" placeholder="https://…" style="flex:1;" />
+                  <input type="url" id="r-link" placeholder="https://…" style="flex:1; height:36px; box-sizing:border-box;" />
                   <button type="button" class="btn btn-ghost paste-btn" data-target="r-link" style="padding: 0 12px; margin: 0; min-height: 36px; height: 36px; line-height: 34px;">Coller</button>
                 </div>
               </div>
               <div class="form-group">
                 <label for="r-image">Image (URL)</label>
                 <div style="display: flex; gap: 8px;">
-                  <input type="text" id="r-image" placeholder="assets/resources/img.jpg" style="flex:1;" />
+                  <input type="text" id="r-image" placeholder="assets/resources/img.jpg" style="flex:1; height:36px; box-sizing:border-box;" />
                   <button type="button" class="btn btn-ghost paste-btn" data-target="r-image" style="padding: 0 12px; margin: 0; min-height: 36px; height: 36px; line-height: 34px;">Coller</button>
                 </div>
               </div>
@@ -410,11 +398,11 @@
         </section>
 
         <!-- ═══════════ POUBELLE ═══════════ -->
-        <section class="admin-panel" data-panel="poubelle">
+        <section class="admin-panel" data-panel="draft">
           <div class="panel-header">
             <div>
-              <h2 class="panel-title">Poubelle</h2>
-              <p class="panel-subtitle">Gérez les éléments affichés dans la page Poubelle.</p>
+              <h2 class="panel-title">Draft</h2>
+              <p class="panel-subtitle">Gérez les éléments affichés dans la page Draft.</p>
             </div>
           </div>
 

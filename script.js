@@ -14,7 +14,7 @@
       'nav.experience': 'Expérience',
       'nav.projects': 'Projets',
       'nav.contact': 'Contact',
-      'nav.poubelle': 'Poubelle',
+      'nav.draft': 'Draft',
       'nav.resources': 'Market',
       'resources.title': 'Market',
       'resources.intro': 'Logos gratuits, créations sur commande, cartes et stickers. Tout ce que je fabrique à côté.',
@@ -61,13 +61,13 @@
       'contact.success': 'Message envoyé ! Je reviens vers vous rapidement.',
       'contact.error': 'Une erreur est survenue. Veuillez réessayer.',
       'contact.or': '— ou par email direct —',
-      'poubelle.title': 'Poubelle',
-      'poubelle.text': 'Vieux projets, brouillons et idées abandonnées. Rien ne se perd, tout se recycle.',
-      'poubelle.item1': 'abandonnée pour cause de flemme',
-      'poubelle.item2': 'never shipped',
-      'poubelle.item3': 'à reprendre un jour, peut-être',
+      'draft.title': 'Draft',
+      'draft.text': 'Old projects, drafts and abandoned ideas. Nothing is lost, everything recycles.',
+      'draft.item1': 'abandoned out of laziness',
+      'draft.item2': 'never shipped',
+      'draft.item3': "to revisit some day, maybe",
       '404.title': 'Page introuvable',
-      '404.text': "Elle est peut-être dans la Poubelle ?",
+      '404.text': "Elle est peut-être dans la Draft ?",
       '404.cta': "Retour à l'accueil",
       'cmdk.placeholder': 'Aller à…',
       'cmdk.hint': '↵ pour valider · esc pour fermer · ⌘K pour ouvrir',
@@ -78,7 +78,7 @@
       'nav.experience': 'Experience',
       'nav.projects': 'Projects',
       'nav.contact': 'Contact',
-      'nav.poubelle': 'Trash',
+      'nav.draft': 'Draft',
       'nav.resources': 'Resources',
       'resources.title': 'Resources',
       'resources.intro': 'Free logos, custom work, cards and stickers. Things I make on the side.',
@@ -125,13 +125,12 @@
       'contact.success': 'Message sent! I\'ll get back to you soon.',
       'contact.error': 'Something went wrong. Please try again.',
       'contact.or': '— or by email —',
-      'poubelle.title': 'Trash',
-      'poubelle.text': 'Old projects, drafts and abandoned ideas. Nothing is lost, everything recycles.',
-      'poubelle.item1': 'abandoned out of laziness',
-      'poubelle.item2': 'never shipped',
-      'poubelle.item3': "to revisit some day, maybe",
+      'draft.title': 'Draft',
+      'draft.text': 'Old projects, drafts and abandoned ideas. Nothing is lost, everything recycles.',
+      'draft.item1': 'abandoned out of laziness',
+      'draft.item3': "to revisit some day, maybe",
       '404.title': 'Page not found',
-      '404.text': 'Maybe it\'s in the Trash?',
+      '404.text': 'Maybe it\'s in the Draft?',
       '404.cta': 'Back home',
       'cmdk.placeholder': 'Go to…',
       'cmdk.hint': '↵ to confirm · esc to close · ⌘K to open',
@@ -196,19 +195,21 @@
   const projectsGrid = document.getElementById('projects-grid');
   if (projectsGrid) {
     const renderProjects = (list) => {
-      projectsGrid.innerHTML = list.map((p) => `
-        <a href="project-detail.html?id=${p.id}" class="card project-card reveal" style="text-decoration: none; color: inherit; display: block;">
-          <div class="card-media">${p.image ? `<img src="${p.image}" alt="${p.title}" loading="lazy" />` : ''}</div>
+      projectsGrid.innerHTML = list.map((p) => {
+        const imgUrl = typeof p.image === 'object' ? (p.image.url || '') : (p.image || '');
+        return `
+        <a href="project-detail.html#${p.id}" class="card project-card reveal" style="text-decoration: none; color: inherit; display: block;">
+          <div class="card-media">${imgUrl ? `<img src="${imgUrl}" alt="${p.title}" loading="lazy" />` : ''}</div>
           <div class="card-body">
             ${p.tag ? `<span class="card-tag">${p.tag}</span>` : ''}
             <h3>${p.title}</h3>
             <p>${p.description}</p>
             <span class="link" data-i18n="projects.link">En savoir plus →</span>
           </div>
-        </a>
-      `).join('');
+        </a>`;
+      }).join('');
       // re-observe les nouvelles cartes
-      projectsGrid.querySelectorAll('.reveal').forEach((el) => el.classList.add('is-visible'));
+      observeNewReveals(projectsGrid);
       // ré-appliquer i18n sur les liens nouvellement injectés
       applyI18n(getLang());
     };
@@ -270,7 +271,7 @@
           </li>
         `).join('');
         // re-observe reveals
-        expTimeline.querySelectorAll('.reveal').forEach(el => el.classList.add('is-visible'));
+        observeNewReveals(expTimeline);
       }
     } catch { /* ignore */ }
   }
@@ -302,15 +303,15 @@
   }
 
   // ============================================================
-  // Rendu dynamique — Poubelle (depuis admin localStorage)
+  // Rendu dynamique — Draft (depuis admin localStorage)
   // ============================================================
-  const poubelleList = document.getElementById('poubelle-list');
-  if (poubelleList) {
+  const draftList = document.getElementById('draft-list');
+  if (draftList) {
     try {
       const items = JSON.parse(localStorage.getItem('admin_trash'));
       if (items && items.length) {
         const lang = getLang();
-        poubelleList.innerHTML = items.map(it =>
+        draftList.innerHTML = items.map(it =>
           `<li><span>${it.name}</span> — ${lang === 'en' ? it.noteEn : it.noteFr}</li>`
         ).join('');
       }
@@ -376,7 +377,7 @@
         const isFree = !r.price || r.price === 0;
         const cta = dict['projects.link'] || (lang === 'fr' ? 'En savoir plus →' : 'Learn more →');
         return `
-          <a href="market-detail.html?id=${r.id}" class="card resource-card reveal is-visible" style="text-decoration: none; color: inherit; display: block;">
+          <a href="market-detail.html#${r.id}" class="card resource-card reveal is-visible" style="text-decoration: none; color: inherit; display: block;">
             <div class="card-media">${r.image ? `<img src="${r.image}" alt="${r.title}" loading="lazy" />` : ''}</div>
             <div class="card-body">
               <div class="resource-meta">
@@ -389,6 +390,7 @@
             </div>
           </a>`;
       }).join('');
+      observeNewReveals(resourcesGrid);
     };
 
     // Filtres
@@ -433,17 +435,30 @@
   // Reveal au scroll
   // ============================================================
   const revealEls = document.querySelectorAll('.reveal');
+  let ioInstance = null;
+
+  function observeNewReveals(container) {
+    if ('IntersectionObserver' in window && ioInstance) {
+      container.querySelectorAll('.reveal').forEach((el) => {
+        el.classList.remove('is-visible');
+        ioInstance.observe(el);
+      });
+    } else {
+      container.querySelectorAll('.reveal').forEach((el) => el.classList.add('is-visible'));
+    }
+  }
+
   if ('IntersectionObserver' in window) {
-    const io = new IntersectionObserver((entries) => {
+    ioInstance = new IntersectionObserver((entries) => {
       entries.forEach((entry, i) => {
         if (entry.isIntersecting) {
           entry.target.style.transitionDelay = (i % 6) * 60 + 'ms';
           entry.target.classList.add('is-visible');
-          io.unobserve(entry.target);
+          ioInstance.unobserve(entry.target);
         }
       });
-    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
-    revealEls.forEach((el) => io.observe(el));
+    }, { threshold: 0.08, rootMargin: '0px 0px -20px 0px' });
+    revealEls.forEach((el) => ioInstance.observe(el));
   } else {
     revealEls.forEach((el) => el.classList.add('is-visible'));
   }
@@ -628,8 +643,7 @@
   // ============================================================
   const projTitle = document.getElementById('proj-title');
   if (projTitle) {
-    const params = new URLSearchParams(window.location.search);
-    const projId = params.get('id');
+    const projId = window.location.hash.slice(1) || new URLSearchParams(window.location.search).get('id');
 
     const renderDetail = (p) => {
       const lang = getLang();
@@ -776,14 +790,20 @@
           galleryEl.innerHTML = visuals.map((item, i) => `
             <div style="display:flex; flex-direction:column; gap:12px;">
               <div class="gallery-item reveal is-visible" style="cursor:zoom-in;">
-                <img src="${item.url}" alt="${p.title}" loading="lazy" />
+                <img src="${item.url}" alt="${p.title}" loading="lazy" ${i === 0 ? 'style="view-transition-name: hero-image-transition;"' : ''} />
               </div>
-              ${item.downloadable ? `<a href="${item.url}" download="Image-${p.title.replace(/\s+/g, '-')}-${i + 1}" class="link" style="align-self:flex-start; display:inline-flex; align-items:center; gap:6px; font-size:14px; text-decoration:none;">
+              <button type="button" class="link dl-btn" data-url="${item.url}" data-name="Image-${p.title.replace(/\s+/g, '-')}-${i + 1}" style="align-self:flex-start; display:inline-flex; align-items:center; gap:6px; font-size:14px; background:none; border:none; cursor:pointer; color:inherit; padding:0;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 ${lang === 'fr' ? 'Télécharger' : 'Download'}
-              </a>` : ''}
+              </button>
             </div>
           `).join('');
+
+          // Supprime le nom de transition après que l'animation est terminée pour éviter des conflits
+          setTimeout(() => {
+            const firstImg = galleryEl.querySelector('.gallery-item img');
+            if (firstImg) firstImg.style.viewTransitionName = '';
+          }, 1500);
           // Lightbox
           galleryEl.querySelectorAll('.gallery-item img').forEach(img => {
             img.addEventListener('click', () => {
@@ -800,6 +820,29 @@
                 if (e.key === 'Escape') { closeLb(); document.removeEventListener('keydown', esc); }
               });
               document.body.appendChild(lb);
+            });
+          });
+          // Download buttons
+          galleryEl.querySelectorAll('.dl-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+              const url = btn.dataset.url;
+              const name = btn.dataset.name;
+              try {
+                const res = await fetch(url);
+                const blob = await res.blob();
+                const ext = blob.type.split('/')[1] || 'jpg';
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `${name}.${ext}`;
+                a.click();
+                URL.revokeObjectURL(a.href);
+              } catch {
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = name;
+                a.target = '_blank';
+                a.click();
+              }
             });
           });
         } else {
@@ -838,8 +881,7 @@
   // ============================================================
   const resTitle = document.getElementById('res-title');
   if (resTitle) {
-    const params = new URLSearchParams(window.location.search);
-    const resId = params.get('id');
+    const resId = window.location.hash.slice(1) || new URLSearchParams(window.location.search).get('id');
     const lang = getLang();
 
     // Détection zone euro
@@ -885,6 +927,12 @@
         imgEl.src = r.image;
         imgEl.alt = r.title;
         imgEl.style.display = 'block';
+        imgEl.style.viewTransitionName = 'hero-image-transition';
+        
+        setTimeout(() => {
+          if (imgEl) imgEl.style.viewTransitionName = '';
+        }, 1500);
+
         imgEl.addEventListener('click', () => {
           const lb = document.createElement('div');
           lb.className = 'lightbox';
@@ -1114,6 +1162,128 @@
       console.error("[Supabase Cloud] Erreur d'actualisation en arrière-plan :", e);
     }
   }
+
+  // ============================================================
+  // Transitions de pages fluides (View Transitions)
+  // ============================================================
+  function setupPageTransitions() {
+    if (!document.startViewTransition) return;
+
+    document.addEventListener('click', (e) => {
+      // Trouve si le clic est sur un lien vers project-detail ou market-detail
+      const a = e.target.closest('a');
+      if (!a) return;
+
+      const href = a.getAttribute('href') || '';
+      const isProjectDetail = href.includes('project-detail.html');
+      const isMarketDetail = href.includes('market-detail.html');
+
+      if (isProjectDetail || isMarketDetail) {
+        e.preventDefault();
+
+        // Ajoute un nom de transition sur l'image pour le morphing
+        const img = a.querySelector('.card-media img');
+        if (img) {
+          img.style.viewTransitionName = 'hero-image-transition';
+        }
+
+        // Lance la transition
+        document.startViewTransition(async () => {
+          // Fetch le HTML de la page de destination
+          try {
+            const response = await fetch(href);
+            const htmlText = await response.text();
+            
+            // Extrait le main de la page de destination
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlText, 'text/html');
+            const newMain = doc.querySelector('main');
+            const currentMain = document.querySelector('main');
+
+            if (newMain && currentMain) {
+              // Swap le contenu de <main>
+              currentMain.innerHTML = newMain.innerHTML;
+              
+              // Met à jour le hash/search de l'URL sans recharger la page
+              history.pushState(null, '', href);
+              
+              // Ré-exécute les scripts de rendu pour la nouvelle page
+              window.scrollTo(0, 0);
+              
+              // Détecte et lance les rendus
+              const projTitleEl = document.getElementById('proj-title');
+              if (projTitleEl) {
+                // Rendu Projet
+                const projId = window.location.hash.slice(1);
+                const localProj = localStorage.getItem('projects');
+                let found = null;
+                if (localProj) {
+                  const list = JSON.parse(localProj).projects || [];
+                  found = list.find(x => x.id === projId);
+                }
+                if (found) {
+                  renderDetail(found);
+                } else {
+                  fetch('projects.json')
+                    .then(r => r.json())
+                    .then(data => {
+                      const list = data.projects || [];
+                      const f = list.find(x => x.id === projId);
+                      renderDetail(f);
+                    });
+                }
+              }
+
+              const resTitleEl = document.getElementById('res-title');
+              if (resTitleEl) {
+                // Rendu Ressource/Market
+                const resId = window.location.hash.slice(1);
+                const localRes = localStorage.getItem('admin_resources');
+                let found = null;
+                if (localRes) {
+                  const list = JSON.parse(localRes).resources || [];
+                  found = list.find(x => x.id === resId);
+                }
+                if (found) {
+                  renderResourceDetail(found);
+                } else {
+                  fetch('market.json')
+                    .then(r => r.json())
+                    .then(data => {
+                      const list = data.resources || [];
+                      const f = list.find(x => x.id === resId);
+                      renderResourceDetail(f);
+                    });
+                }
+              }
+
+              // Met à jour le titre du document
+              document.title = doc.title;
+              
+              // Ré-observe les animations reveal
+              const newReveals = document.querySelectorAll('.reveal');
+              if (ioInstance) {
+                newReveals.forEach(el => {
+                  el.classList.remove('is-visible');
+                  ioInstance.observe(el);
+                });
+              }
+            }
+          } catch (err) {
+            // Repli : redirection normale si le fetch échoue
+            window.location.href = href;
+          }
+        });
+      }
+    });
+
+    // Supporte le bouton précédent/suivant du navigateur
+    window.addEventListener('popstate', () => {
+      window.location.reload();
+    });
+  }
+
+  setupPageTransitions();
 
   // Lance la synchronisation asynchrone non-bloquante
   syncCloudDataAndRefresh();

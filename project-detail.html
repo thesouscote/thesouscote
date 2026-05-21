@@ -52,10 +52,13 @@
     }
     .gallery-grid {
       display: grid;
-      grid-template-columns: 1fr;
-      gap: 32px;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
       margin-top: 48px;
       margin-bottom: 80px;
+    }
+    @media (max-width: 768px) {
+      .gallery-grid { grid-template-columns: repeat(2, 1fr); }
     }
     .gallery-item {
       width: 100%;
@@ -94,16 +97,21 @@
   <nav class="nav">
     <div class="nav-inner">
       <a href="index.html" class="brand">
-        <!-- Logo injected by JS -->
+        <svg class="logo-svg" width="572" height="572" viewBox="0 0 572 572.004" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="thesouscote">
+          <path class="logo-arrow logo-arrow--top" d="M285.999 0L411.949 188.789H319.191V332.495H252.807V188.789H160.05L285.999 0Z" fill="currentColor"/>
+          <path class="logo-arrow logo-arrow--left" d="M251.898 428.299L125.949 239.509L0 428.299H92.7567V572.004H159.141V428.299H251.898Z" fill="currentColor"/>
+          <path class="logo-arrow logo-arrow--right" d="M446.052 239.509L572.001 428.299H479.245V572.004H412.86V428.299H320.103L446.052 239.509Z" fill="currentColor"/>
+        </svg>
       </a>
       <ul class="nav-links">
         <li><a href="index.html" data-nav="home" data-i18n="nav.home">Accueil</a></li>
-        <li><a href="about.html" data-nav="about" data-i18n="nav.about">À propos</a></li>
         <li><a href="experience.html" data-nav="experience" data-i18n="nav.experience">Expérience</a></li>
         <li><a href="projects.html" data-nav="projects" data-i18n="nav.projects">Projets</a></li>
-        <li><a href="market.html" data-nav="resources" data-i18n="nav.resources">Ressources</a></li>
+        <li><a href="market.html" data-nav="resources" data-i18n="nav.resources">Market</a></li>
+        <li><a href="collecte.html" data-nav="collecte">Collecte</a></li>
+        <li><a href="draft.html" data-nav="draft" data-i18n="nav.draft">Draft</a></li>
         <li><a href="contact.html" data-nav="contact" data-i18n="nav.contact">Contact</a></li>
-        <li><a href="poubelle.html" data-nav="poubelle" data-i18n="nav.poubelle">Poubelle</a></li>
+        <li><a href="about.html" data-nav="about" data-i18n="nav.about">À propos</a></li>
       </ul>
       <div class="nav-actions">
         <div class="lang-toggle" role="group" aria-label="Langue">
@@ -166,7 +174,7 @@
         <li><a href="projects.html" data-cmdk-item>Projets</a></li>
         <li><a href="market.html" data-cmdk-item>Ressources</a></li>
         <li><a href="contact.html" data-cmdk-item>Contact</a></li>
-        <li><a href="poubelle.html" data-cmdk-item>Poubelle</a></li>
+        <li><a href="draft.html" data-cmdk-item>Draft</a></li>
       </ul>
       <div class="cmdk-hint">↵ pour valider · esc pour fermer · ⌘K pour ouvrir</div>
     </div>

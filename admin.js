@@ -39,10 +39,11 @@
       'admin_resources',
       'admin_trash',
       'admin_site_meta',
-      'admin_deliveries'
+      'admin_deliveries',
+      'admin_categories'
     ];
     
-    if (supabase && CMS_KEYS.includes(key)) {
+    if (supabase && CMS_KEYS.includes(key) && typeof value === 'string' && value.length > 0) {
       try {
         const parsed = JSON.parse(value);
         supabase.from('portfolio_data').upsert({ key: key, value: parsed })
@@ -51,7 +52,7 @@
             else console.log(`[Supabase Cloud] Synchronisation réussie pour [${key}]`);
           });
       } catch (e) {
-        console.error("Erreur de parsing lors de l'envoi cloud :", e);
+        console.warn(`[Cloud] Valeur non-JSON ignorée pour [${key}]`);
       }
     }
   };
@@ -121,17 +122,29 @@
   function initTabs() {
     const tabBtns = document.querySelectorAll('.sidebar-link[data-tab]');
     const panels = document.querySelectorAll('.admin-panel[data-panel]');
+
+    function activateTab(tabName) {
+      tabBtns.forEach(b => b.classList.remove('is-active'));
+      panels.forEach(p => p.classList.remove('is-active'));
+      const btn = document.querySelector(`.sidebar-link[data-tab="${tabName}"]`);
+      const panel = document.querySelector(`[data-panel="${tabName}"]`);
+      if (btn) btn.classList.add('is-active');
+      if (panel) panel.classList.add('is-active');
+    }
+
     tabBtns.forEach(btn => {
       btn.addEventListener('click', () => {
-        tabBtns.forEach(b => b.classList.remove('is-active'));
-        panels.forEach(p => p.classList.remove('is-active'));
-        btn.classList.add('is-active');
-        const panel = document.querySelector(`[data-panel="${btn.dataset.tab}"]`);
-        if (panel) panel.classList.add('is-active');
+        activateTab(btn.dataset.tab);
+        sessionStorage.setItem('admin-tab', btn.dataset.tab);
         document.querySelector('.admin-sidebar')?.classList.remove('is-open');
         document.querySelector('.sidebar-overlay')?.classList.remove('is-visible');
       });
     });
+
+    const savedTab = sessionStorage.getItem('admin-tab');
+    if (savedTab && document.querySelector(`[data-panel="${savedTab}"]`)) {
+      activateTab(savedTab);
+    }
   }
 
   // ---------- Mobile menu ----------
@@ -174,17 +187,46 @@
     const fTitle = document.getElementById('f-title');
     const fTag = document.getElementById('f-tag');
     const fDesc = document.getElementById('f-description');
+    const fDate = document.getElementById('f-date');
+    const fClient = document.getElementById('f-client');
+    const fStack = document.getElementById('f-stack');
     const fLink = document.getElementById('f-link');
     const fImage = document.getElementById('f-image');
     const fImageFile = document.getElementById('f-image-file');
-    const fGallery1 = document.getElementById('f-gallery-1');
-    const fGallery2 = document.getElementById('f-gallery-2');
-    const fGallery3 = document.getElementById('f-gallery-3');
-    const fGallery4 = document.getElementById('f-gallery-4');
-    const fGalleryFile1 = document.getElementById('f-gallery-file-1');
-    const fGalleryFile2 = document.getElementById('f-gallery-file-2');
-    const fGalleryFile3 = document.getElementById('f-gallery-file-3');
-    const fGalleryFile4 = document.getElementById('f-gallery-file-4');
+    const galleryRows = document.getElementById('gallery-rows');
+    const addGalleryRowBtn = document.getElementById('add-gallery-row');
+
+    const UPLOAD_SVG = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>`;
+
+    function addGalleryRow(url = '', downloadable = true) {
+      const row = document.createElement('div');
+      row.className = 'gallery-dyn-row';
+      row.style.cssText = 'display:flex;gap:8px;align-items:center;';
+      const uid = 'gr-' + Date.now() + Math.random().toString(36).slice(2);
+      row.innerHTML = `
+        <input type="url" class="gallery-url" placeholder="https://…" value="${url}" style="flex:1;padding:10px 14px;background:var(--bg-alt);border:1px solid var(--border);color:var(--text);font:inherit;font-size:14px;outline:none;" />
+        <button type="button" class="btn btn-ghost gallery-paste" style="padding:0 12px;height:36px;">Coller</button>
+        <label class="file-upload-label" style="margin:0;min-width:auto;padding:0 12px;display:flex;align-items:center;justify-content:center;height:36px;">
+          ${UPLOAD_SVG}
+          <input type="file" accept="image/*" hidden />
+        </label>
+        <button type="button" class="btn btn-ghost btn-sm btn-del gallery-remove" style="padding:0 10px;height:36px;">×</button>
+      `;
+      row.querySelector('.gallery-remove').addEventListener('click', () => row.remove());
+      row.querySelector('.gallery-paste').addEventListener('click', async () => {
+        try { const t = await navigator.clipboard.readText(); row.querySelector('.gallery-url').value = t.trim(); } catch {}
+      });
+      row.querySelector('input[type="file"]').addEventListener('change', e => {
+        const file = e.target.files?.[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => { row.querySelector('.gallery-url').value = reader.result; };
+        reader.readAsDataURL(file);
+      });
+      galleryRows.appendChild(row);
+      return row;
+    }
+
+    addGalleryRowBtn?.addEventListener('click', () => addGalleryRow());
     const fSubmit = document.getElementById('f-submit');
     const fReset = document.getElementById('f-reset');
     const formTitle = document.getElementById('project-form-title');
@@ -208,6 +250,7 @@
           const d = await r.json();
           projects = d.projects || [];
         } catch { projects = []; }
+        save(); return;
       }
       render();
     }
@@ -218,7 +261,7 @@
         list.innerHTML = '<li class="admin-empty">Aucun projet.</li>';
         return;
       }
-      list.innerHTML = projects.map(p => `
+      list.innerHTML = projects.map((p, i) => `
           <li class="admin-item">
             <div class="admin-item-thumb">${p.image ? `<img src="${typeof p.image === 'object' && p.image.url ? esc(p.image.url) : esc(p.image)}" alt="">` : ''}</div>
             <div class="admin-item-body">
@@ -226,10 +269,22 @@
               <div class="admin-item-desc">${esc(p.description)}</div>
             </div>
             <div class="admin-item-actions">
+              <button type="button" data-pmoveup="${i}" class="btn btn-ghost btn-sm" ${i === 0 ? 'disabled' : ''} title="Monter">↑</button>
+              <button type="button" data-pmovedown="${i}" class="btn btn-ghost btn-sm" ${i === projects.length - 1 ? 'disabled' : ''} title="Descendre">↓</button>
               <button type="button" data-edit="${p.id}" class="btn btn-ghost btn-sm">Modifier</button>
               <button type="button" data-del="${p.id}" class="btn btn-ghost btn-sm btn-del">×</button>
             </div>
           </li>`).join('');
+      list.querySelectorAll('[data-pmoveup]').forEach(b =>
+        b.addEventListener('click', () => {
+          const i = parseInt(b.dataset.pmoveup);
+          if (i > 0) { [projects[i - 1], projects[i]] = [projects[i], projects[i - 1]]; save(); }
+        }));
+      list.querySelectorAll('[data-pmovedown]').forEach(b =>
+        b.addEventListener('click', () => {
+          const i = parseInt(b.dataset.pmovedown);
+          if (i < projects.length - 1) { [projects[i], projects[i + 1]] = [projects[i + 1], projects[i]]; save(); }
+        }));
       list.querySelectorAll('[data-edit]').forEach(b =>
         b.addEventListener('click', () => editP(b.dataset.edit)));
       list.querySelectorAll('[data-del]').forEach(b =>
@@ -243,37 +298,17 @@
       fTitle.value = p.title || '';
       fTag.value = p.tag || '';
       fDesc.value = p.description || '';
+      fDate.value = p.date || '';
+      fClient.value = p.client || '';
+      fStack.value = Array.isArray(p.stack) ? p.stack.join(', ') : (p.stack || '');
       fLink.value = p.link || '';
-      if (p.image) {
-        if (typeof p.image === 'object') {
-          fImage.value = p.image.url || '';
-          document.getElementById('f-image-downloadable').checked = p.image.downloadable !== false;
-        } else {
-          fImage.value = p.image;
-          document.getElementById('f-image-downloadable').checked = true;
-        }
+      fImage.value = (typeof p.image === 'object') ? (p.image.url || '') : (p.image || '');
+      galleryRows.innerHTML = '';
+      const gallery = p.gallery || [];
+      if (gallery.length) {
+        gallery.forEach(item => addGalleryRow(typeof item === 'object' ? item.url : item));
       } else {
-        fImage.value = '';
-        document.getElementById('f-image-downloadable').checked = true;
-      }
-      if (fGallery1) {
-        const gallery = p.gallery || [];
-        const inputs = [
-          { urlInput: fGallery1, dlInput: document.getElementById('f-gallery-downloadable-1') },
-          { urlInput: fGallery2, dlInput: document.getElementById('f-gallery-downloadable-2') },
-          { urlInput: fGallery3, dlInput: document.getElementById('f-gallery-downloadable-3') },
-          { urlInput: fGallery4, dlInput: document.getElementById('f-gallery-downloadable-4') }
-        ];
-        inputs.forEach((pair, idx) => {
-          const item = gallery[idx];
-          if (item) {
-            pair.urlInput.value = item.url || '';
-            pair.dlInput.checked = item.downloadable !== false;
-          } else {
-            pair.urlInput.value = '';
-            pair.dlInput.checked = true;
-          }
-        });
+        addGalleryRow();
       }
       fSubmit.textContent = 'Mettre à jour';
       formTitle.textContent = 'Modifier le projet';
@@ -291,16 +326,11 @@
       form.reset();
       fId.value = '';
       fImage.value = '';
-      const imgDl = document.getElementById('f-image-downloadable');
-      if (imgDl) imgDl.checked = true;
-      if (fGallery1) {
-        fGallery1.value = '';
-        fGallery2.value = '';
-        fGallery3.value = '';
-        fGallery4.value = '';
-        const dlIds = ['f-gallery-downloadable-1','f-gallery-downloadable-2','f-gallery-downloadable-3','f-gallery-downloadable-4'];
-        dlIds.forEach(id => { const cb = document.getElementById(id); if (cb) cb.checked = true; });
-      }
+      fDate.value = '';
+      fClient.value = '';
+      fStack.value = '';
+      galleryRows.innerHTML = '';
+      addGalleryRow();
       fSubmit.textContent = 'Ajouter';
       formTitle.textContent = 'Ajouter un projet';
     }
@@ -308,29 +338,20 @@
     form.addEventListener('submit', e => {
       e.preventDefault();
       const gallery = [];
-      if (fGallery1) {
-        const galleryInputs = [
-          { urlInput: fGallery1, dlInput: document.getElementById('f-gallery-downloadable-1') },
-          { urlInput: fGallery2, dlInput: document.getElementById('f-gallery-downloadable-2') },
-          { urlInput: fGallery3, dlInput: document.getElementById('f-gallery-downloadable-3') },
-          { urlInput: fGallery4, dlInput: document.getElementById('f-gallery-downloadable-4') }
-        ];
-        galleryInputs.forEach(pair => {
-          const url = pair.urlInput.value.trim();
-          if (url) {
-            const downloadable = pair.dlInput?.checked ?? true;
-            gallery.push({ url, downloadable });
-          }
-        });
-      }
-      const imageDownloadable = document.getElementById('f-image-downloadable')?.checked ?? true;
+      galleryRows.querySelectorAll('.gallery-dyn-row').forEach(row => {
+        const url = row.querySelector('.gallery-url').value.trim();
+        if (url) gallery.push(url);
+      });
       const data = {
         id: fId.value || newId(),
         title: fTitle.value.trim(),
         description: fDesc.value.trim(),
         tag: fTag.value.trim(),
+        date: fDate.value.trim(),
+        client: fClient.value.trim(),
+        stack: fStack.value.trim() ? fStack.value.trim().split(',').map(s => s.trim()) : [],
         link: fLink.value.trim() || '#',
-        image: fImage.value.trim() ? { url: fImage.value.trim(), downloadable: imageDownloadable } : '',
+        image: fImage.value.trim(),
         gallery: gallery
       };
       const isUpdate = !!fId.value;
@@ -358,19 +379,6 @@
       reader.readAsDataURL(file);
     });
 
-    const bindGalleryFile = (fileInput, textInput) => {
-      fileInput?.addEventListener('change', e => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = () => { textInput.value = reader.result; };
-        reader.readAsDataURL(file);
-      });
-    };
-    bindGalleryFile(fGalleryFile1, fGallery1);
-    bindGalleryFile(fGalleryFile2, fGallery2);
-    bindGalleryFile(fGalleryFile3, fGallery3);
-    bindGalleryFile(fGalleryFile4, fGallery4);
 
     document.getElementById('export-btn')?.addEventListener('click', () => {
       const blob = new Blob([JSON.stringify({ projects }, null, 2)], { type: 'application/json' });
@@ -439,10 +447,22 @@
 
     function renderSkills() {
       skillsList.innerHTML = data.skills.map((s, i) => `
-        <div class="skill-row" style="display:flex; gap:8px; margin-bottom:8px;">
+        <div class="skill-row" style="display:flex; gap:8px; margin-bottom:8px; align-items:center;">
           <input type="text" value="${esc(s.fr)}" data-idx="${i}" data-lang="fr" placeholder="Compétence" style="flex:1;" />
+          <button type="button" class="btn btn-ghost btn-sm" data-smoveup="${i}" ${i === 0 ? 'disabled' : ''} title="Monter">↑</button>
+          <button type="button" class="btn btn-ghost btn-sm" data-smovedown="${i}" ${i === data.skills.length - 1 ? 'disabled' : ''} title="Descendre">↓</button>
           <button type="button" class="btn-icon" data-remove="${i}">×</button>
         </div>`).join('');
+      skillsList.querySelectorAll('[data-smoveup]').forEach(b =>
+        b.addEventListener('click', () => {
+          const i = parseInt(b.dataset.smoveup);
+          if (i > 0) { [data.skills[i - 1], data.skills[i]] = [data.skills[i], data.skills[i - 1]]; renderSkills(); }
+        }));
+      skillsList.querySelectorAll('[data-smovedown]').forEach(b =>
+        b.addEventListener('click', () => {
+          const i = parseInt(b.dataset.smovedown);
+          if (i < data.skills.length - 1) { [data.skills[i], data.skills[i + 1]] = [data.skills[i + 1], data.skills[i]]; renderSkills(); }
+        }));
       skillsList.querySelectorAll('[data-remove]').forEach(b =>
         b.addEventListener('click', () => {
           data.skills.splice(+b.dataset.remove, 1);
@@ -512,17 +532,29 @@
         list.innerHTML = '<li class="admin-empty">Aucune expérience.</li>';
         return;
       }
-      list.innerHTML = items.map(it => `
+      list.innerHTML = items.map((it, i) => `
         <li class="admin-item admin-item--no-thumb">
           <div class="admin-item-body">
             <div class="admin-item-title">${esc(it.roleFr)}</div>
             <div class="admin-item-desc">${esc(it.dateFr)} — ${esc(it.descFr)}</div>
           </div>
           <div class="admin-item-actions">
+            <button type="button" data-emoveup="${i}" class="btn btn-ghost btn-sm" ${i === 0 ? 'disabled' : ''} title="Monter">↑</button>
+            <button type="button" data-emovedown="${i}" class="btn btn-ghost btn-sm" ${i === items.length - 1 ? 'disabled' : ''} title="Descendre">↓</button>
             <button type="button" data-eedit="${it.id}" class="btn btn-ghost btn-sm">Modifier</button>
             <button type="button" data-edel="${it.id}" class="btn btn-ghost btn-sm btn-del">×</button>
           </div>
         </li>`).join('');
+      list.querySelectorAll('[data-emoveup]').forEach(b =>
+        b.addEventListener('click', () => {
+          const i = parseInt(b.dataset.emoveup);
+          if (i > 0) { [items[i - 1], items[i]] = [items[i], items[i - 1]]; save(); }
+        }));
+      list.querySelectorAll('[data-emovedown]').forEach(b =>
+        b.addEventListener('click', () => {
+          const i = parseInt(b.dataset.emovedown);
+          if (i < items.length - 1) { [items[i], items[i + 1]] = [items[i + 1], items[i]]; save(); }
+        }));
       list.querySelectorAll('[data-eedit]').forEach(b =>
         b.addEventListener('click', () => editE(b.dataset.eedit)));
       list.querySelectorAll('[data-edel]').forEach(b =>
@@ -671,7 +703,50 @@
     const formTitle = document.getElementById('resource-form-title');
 
     const KEY = 'admin_resources';
+    const CAT_KEY = 'admin_categories';
+    const DEFAULT_CATS = ['logo', 'carte', 'sticker'];
     let resources = [];
+
+    // --- Catégories dynamiques ---
+    function loadCats() {
+      try { return JSON.parse(localStorage.getItem(CAT_KEY)) || [...DEFAULT_CATS]; }
+      catch { return [...DEFAULT_CATS]; }
+    }
+    function saveCats(cats) { localStorage.setItem(CAT_KEY, JSON.stringify(cats)); }
+    function renderCats() {
+      const cats = loadCats();
+      const saved = rCategory.value;
+      rCategory.innerHTML = cats.map(c => `<option value="${esc(c)}">${esc(c.charAt(0).toUpperCase() + c.slice(1))}</option>`).join('');
+      if (saved && cats.includes(saved)) rCategory.value = saved;
+      const tagsEl = document.getElementById('cat-tags');
+      if (tagsEl) {
+        tagsEl.innerHTML = cats.map(c => `
+          <span class="cat-pill">${esc(c.charAt(0).toUpperCase() + c.slice(1))}
+            <button type="button" data-delcat="${esc(c)}" title="Supprimer">×</button>
+          </span>`).join('');
+        tagsEl.querySelectorAll('[data-delcat]').forEach(b => b.addEventListener('click', () => {
+          const updated = loadCats().filter(x => x !== b.dataset.delcat);
+          if (updated.length === 0) return;
+          saveCats(updated);
+          renderCats();
+        }));
+      }
+    }
+    const addCatBtn = document.getElementById('add-cat-btn');
+    const newCatInput = document.getElementById('new-cat-input');
+    if (addCatBtn && newCatInput) {
+      addCatBtn.addEventListener('click', () => {
+        const val = newCatInput.value.trim().toLowerCase();
+        if (!val) return;
+        const cats = loadCats();
+        if (!cats.includes(val)) { cats.push(val); saveCats(cats); }
+        newCatInput.value = '';
+        renderCats();
+        rCategory.value = val;
+      });
+      newCatInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addCatBtn.click(); } });
+    }
+    renderCats();
 
     function save() {
       localStorage.setItem(KEY, JSON.stringify({ resources }));
@@ -689,6 +764,7 @@
           const d = await r.json();
           resources = d.resources || [];
         } catch { resources = []; }
+        save(); return;
       }
       render();
     }
@@ -703,7 +779,7 @@
         list.innerHTML = '<li class="admin-empty">Aucun élément dans le market.</li>';
         return;
       }
-      list.innerHTML = resources.map(r => `
+      list.innerHTML = resources.map((r, i) => `
         <li class="admin-item">
           <div class="admin-item-thumb">${r.image ? `<img src="${esc(r.image)}" alt="">` : ''}</div>
           <div class="admin-item-body">
@@ -716,10 +792,22 @@
             <div class="admin-item-desc">${esc(r.description)}</div>
           </div>
           <div class="admin-item-actions">
+            <button type="button" data-rmoveup="${i}" class="btn btn-ghost btn-sm" ${i === 0 ? 'disabled' : ''} title="Monter">↑</button>
+            <button type="button" data-rmovedown="${i}" class="btn btn-ghost btn-sm" ${i === resources.length - 1 ? 'disabled' : ''} title="Descendre">↓</button>
             <button type="button" data-redit="${r.id}" class="btn btn-ghost btn-sm">Modifier</button>
             <button type="button" data-rdel="${r.id}" class="btn btn-ghost btn-sm btn-del">×</button>
           </div>
         </li>`).join('');
+      list.querySelectorAll('[data-rmoveup]').forEach(b =>
+        b.addEventListener('click', () => {
+          const i = parseInt(b.dataset.rmoveup);
+          if (i > 0) { [resources[i - 1], resources[i]] = [resources[i], resources[i - 1]]; save(); }
+        }));
+      list.querySelectorAll('[data-rmovedown]').forEach(b =>
+        b.addEventListener('click', () => {
+          const i = parseInt(b.dataset.rmovedown);
+          if (i < resources.length - 1) { [resources[i], resources[i + 1]] = [resources[i + 1], resources[i]]; save(); }
+        }));
       list.querySelectorAll('[data-redit]').forEach(b =>
         b.addEventListener('click', () => editR(b.dataset.redit)));
       list.querySelectorAll('[data-rdel]').forEach(b =>

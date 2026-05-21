@@ -141,6 +141,8 @@ a { color: inherit; text-decoration: none; }
   border: 0;
 }
 /* ---------- Admin ---------- */
+[data-authed="1"] #gate { display: none !important; }
+[data-authed="1"] #admin-app { display: block !important; }
 .gate {
   position: fixed; inset: 0;
   background: var(--bg);
@@ -231,7 +233,9 @@ a { color: inherit; text-decoration: none; }
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-.admin-item-actions { display: flex; gap: 8px; }
+.admin-item--no-thumb { grid-template-columns: 1fr auto; }
+.admin-item-actions { display: flex; gap: 8px; opacity: 0; transition: opacity 0.15s; }
+.admin-item:hover .admin-item-actions { opacity: 1; }
 .admin-empty { color: var(--text-muted); font-size: 14px; padding: 20px 0; }
 
 .admin-tools {
@@ -354,27 +358,23 @@ a { color: inherit; text-decoration: none; }
 .logo-arrow {
   transform-box: fill-box;
   transform-origin: center;
-  animation: logoIn 1.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  opacity: 0;
+  transform: var(--logo-start) scale(0.96);
+  animation: logoArrowIn 1.1s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
 }
-.logo-arrow--top    { animation-delay: 0ms;   transform: translateY(-40px); }
-.logo-arrow--left   { animation-delay: 250ms; transform: translate(-40px, 40px); }
-.logo-arrow--right  { animation-delay: 500ms; transform: translate(40px, 40px); }
-@keyframes logoIn {
-  from { opacity: 0; }
-  to   { opacity: 1; transform: translate(0, 0); }
+.logo-arrow--top    { --logo-start: translateY(-44px); animation-delay: 0ms; }
+.logo-arrow--left   { --logo-start: translate(-44px, 44px); animation-delay: 180ms; }
+.logo-arrow--right  { --logo-start: translate(44px, 44px); animation-delay: 360ms; }
+@keyframes logoArrowIn {
+  0% { opacity: 0; transform: var(--logo-start) scale(0.96); }
+  70% { opacity: 1; }
+  100% { opacity: 1; transform: translate(0, 0) scale(1); }
 }
 @media (prefers-reduced-motion: reduce) {
   .logo-arrow { animation: none; transform: none; opacity: 1; }
 }
 
-.brand-logo {
-  height: 28px;
-  width: auto;
-  display: block;
-}
-.brand-logo-dark { display: none; }
-[data-theme="dark"] .brand-logo-light { display: none; }
-[data-theme="dark"] .brand-logo-dark { display: block; }
 
 .nav-links {
   display: flex;
@@ -824,15 +824,29 @@ a { color: inherit; text-decoration: none; }
 /* ---------- Reveal animation ---------- */
 .reveal {
   opacity: 0;
-  transform: translateY(16px);
-  transition: opacity 0.7s ease, transform 0.7s ease;
+  transform: translateY(32px) scale(0.98);
+  transition: opacity 1.1s cubic-bezier(0.16, 1, 0.3, 1), transform 1.1s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
 }
 .reveal.is-visible {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
 }
 @media (prefers-reduced-motion: reduce) {
   .reveal { opacity: 1; transform: none; transition: none; }
+}
+
+/* ---------- View Transitions ---------- */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.45s;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+::view-transition-old(hero-image-transition),
+::view-transition-new(hero-image-transition) {
+  animation-duration: 0.5s;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* ---------- Nav active state ---------- */
@@ -1273,13 +1287,15 @@ kbd {
   flex-direction: column;
   justify-content: space-between;
   align-items: flex-start;
-  aspect-ratio: 1 / 1; /* Force le format carré parfait */
+  aspect-ratio: 1 / 1;
   padding: 18px;
   border: 1px solid var(--border);
   background: var(--bg-alt);
   box-sizing: border-box;
   width: 100%;
   gap: 12px;
+  transform: none !important;
+  transition: none !important;
 }
 
 #delivery-list .admin-item-body {
@@ -1294,9 +1310,10 @@ kbd {
   display: flex;
   gap: 8px;
   justify-content: flex-start;
-  margin-top: auto; /* Aligne les boutons tout en bas du carré */
+  margin-top: auto;
   border-top: 1px solid var(--border);
   padding-top: 12px;
+  opacity: 1 !important;
 }
 
 /* ---------- Espace Collecte Public (DA Premium) ---------- */
