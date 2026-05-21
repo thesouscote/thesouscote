@@ -403,7 +403,6 @@
     const XOF_TO_EUR = 1 / 655.957; // taux fixe FCFA → EUR
 
     // Liens de paiement — remplace par tes vrais liens
-    const WAVE_NUMBER = '+22500000000'; // Ton numéro Wave
     const PAYPAL_LINK = 'https://paypal.me/thesouscote'; // Ton lien PayPal.me
 
     const getPaymentLink = (title, price) => {
@@ -411,7 +410,7 @@
         const eur = (price * XOF_TO_EUR).toFixed(2);
         return `${PAYPAL_LINK}/${eur}EUR`;
       }
-      return `https://pay.wave.com/m/${WAVE_NUMBER}?amount=${price}&currency=XOF`;
+      return `https://pay.wave.com/m/M_0HDs6VQohDa2/c/ci/`;
     };
 
     const formatPrice = (price) => {
@@ -1064,14 +1063,44 @@
       if (ctaEl) {
         const isFree = !r.price || r.price === 0;
         if (isFree) {
-          ctaEl.innerHTML = `<a href="${r.link || '#'}" class="btn btn-primary">${lang === 'fr' ? 'T\u00e9l\u00e9charger gratuitement' : 'Download for free'} \u2193</a>`;
+          ctaEl.innerHTML = `
+            <button type="button" class="btn btn-primary market-dl-btn" data-url="${r.link || '#'}" data-name="Resource-${r.title.replace(/\s+/g, '-')}" style="width:100%; text-align:center; display:inline-flex; align-items:center; justify-content:center; gap:8px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              ${lang === 'fr' ? 'Télécharger gratuitement' : 'Download for free'}
+            </button>
+          `;
+          
+          const dlBtn = ctaEl.querySelector('.market-dl-btn');
+          if (dlBtn) {
+            dlBtn.addEventListener('click', async () => {
+              const url = dlBtn.dataset.url;
+              const name = dlBtn.dataset.name;
+              if (!url || url === '#') return;
+              try {
+                const res = await fetch(url);
+                const blob = await res.blob();
+                const ext = blob.type.split('/')[1] || url.split('.').pop().split('?')[0] || 'zip';
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `${name}.${ext}`;
+                a.click();
+                URL.revokeObjectURL(a.href);
+              } catch {
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = name;
+                a.target = '_blank';
+                a.click();
+              }
+            });
+          }
         } else {
           let payLink;
           if (isEuro) {
             const eur = (r.price * RATE).toFixed(2);
             payLink = `${PAYPAL}/${eur}EUR`;
           } else {
-            payLink = `https://pay.wave.com/m/${WAVE_NUM}?amount=${r.price}&currency=XOF`;
+            payLink = `https://pay.wave.com/m/M_0HDs6VQohDa2/c/ci/`;
           }
           ctaEl.innerHTML = `
             <a href="${payLink}" target="_blank" rel="noopener" class="btn btn-primary">${lang === 'fr' ? 'Acheter maintenant' : 'Buy now'} \u2192</a>
