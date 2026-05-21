@@ -306,7 +306,8 @@
   // Rendu dynamique — Draft (depuis admin localStorage)
   // ============================================================
   const draftList = document.getElementById('draft-list');
-  if (draftList) {
+  const renderDraft = () => {
+    if (!draftList) return;
     try {
       const items = JSON.parse(localStorage.getItem('admin_trash'));
       if (items && items.length) {
@@ -316,7 +317,8 @@
         ).join('');
       }
     } catch { /* ignore */ }
-  }
+  };
+  renderDraft();
 
   // ============================================================
   // Rendu dynamique des ressources (market.json + filtres)
