@@ -1073,21 +1073,24 @@
       statusEl.textContent = "Recherche en cours...";
       statusEl.style.color = "var(--text-muted)";
 
-      // 1. Charger DYNAMIQUEMENT depuis Supabase (Cloud) ou localStorage
+      // 1. Charger DYNAMIQUEMENT depuis Firebase (Cloud) ou localStorage
       let DELIVERIES = {};
       let loadedFromCloud = false;
 
-      if (supabase) {
+      if (typeof db !== 'undefined' && db) {
         try {
-          const { data, error } = await supabase.from('deliveries').select('*');
-          if (!error && data) {
-            data.forEach(d => {
-              DELIVERIES[d.code.toUpperCase()] = d;
+          const snapshot = await db.collection('deliveries').get();
+          if (!snapshot.empty) {
+            snapshot.forEach(doc => {
+              const d = doc.data();
+              if (d && d.code) {
+                DELIVERIES[d.code.toUpperCase()] = d;
+              }
             });
             loadedFromCloud = true;
           }
         } catch (err) {
-          console.error("Erreur de recherche Supabase, repli sur LocalStorage...", err);
+          console.error("Erreur de recherche Firebase, repli sur LocalStorage...", err);
         }
       }
 
@@ -1141,26 +1144,29 @@
   }
 
   // ============================================================
-  // Synchronisation Cloud Supabase en arrière-plan (CMS Global)
+  // Synchronisation Cloud Firebase en arrière-plan (CMS Global)
   // ============================================================
   async function syncCloudDataAndRefresh() {
-    if (typeof supabase === 'undefined' || !supabase) return;
+    if (typeof db === 'undefined' || !db) return;
     try {
-      const { data, error } = await supabase.from('portfolio_data').select('*');
-      if (!error && data) {
+      const snapshot = await db.collection('portfolio_data').get();
+      if (!snapshot.empty) {
         let hasChanges = false;
-        data.forEach(row => {
-          const localVal = localStorage.getItem(row.key);
-          const newValString = JSON.stringify(row.value);
+        snapshot.forEach(doc => {
+          const key = doc.id;
+          const value = doc.data().value;
+          
+          const localVal = localStorage.getItem(key);
+          const newValString = JSON.stringify(value);
           if (localVal !== newValString) {
-            localStorage.setItem(row.key, newValString);
+            localStorage.setItem(key, newValString);
             hasChanges = true;
           }
         });
         
         // Si des changements sont détectés, on met à jour l'affichage en direct sans recharger !
         if (hasChanges) {
-          console.log("[Supabase Cloud] Données mises à jour, rafraîchissement dynamique...");
+          console.log("[Firebase Cloud] Données mises à jour, rafraîchissement dynamique...");
           
           // Rafraîchit les Projets si on est sur la grille des projets
           const targetProjectsGrid = document.getElementById('projects-grid');

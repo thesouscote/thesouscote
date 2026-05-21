@@ -26,7 +26,7 @@
     t._tid = setTimeout(() => t.classList.remove('is-visible'), 2600);
   }
 
-  // ---------- Intercepteur Supabase CMS (Sauvegarde Automatique) ----------
+  // ---------- Intercepteur Firebase CMS (Sauvegarde Automatique) ----------
   const originalSetItem = localStorage.setItem;
   localStorage.setItem = function (key, value) {
     originalSetItem.apply(this, arguments);
@@ -43,13 +43,15 @@
       'admin_categories'
     ];
     
-    if (supabase && CMS_KEYS.includes(key) && typeof value === 'string' && value.length > 0) {
+    if (typeof db !== 'undefined' && db && CMS_KEYS.includes(key) && typeof value === 'string' && value.length > 0) {
       try {
         const parsed = JSON.parse(value);
-        supabase.from('portfolio_data').upsert({ key: key, value: parsed })
-          .then(({ error }) => {
-            if (error) console.error(`Erreur de synchronisation Cloud pour [${key}] :`, error);
-            else console.log(`[Supabase Cloud] Synchronisation réussie pour [${key}]`);
+        db.collection('portfolio_data').doc(key).set({ value: parsed })
+          .then(() => {
+            console.log(`[Firebase Cloud] Synchronisation réussie pour [${key}]`);
+          })
+          .catch((error) => {
+            console.error(`Erreur de synchronisation Cloud pour [${key}] :`, error);
           });
       } catch (e) {
         console.warn(`[Cloud] Valeur non-JSON ignorée pour [${key}]`);
@@ -58,18 +60,20 @@
   };
 
   async function loadAllCloudData() {
-    if (!supabase) return;
+    if (typeof db === 'undefined' || !db) return;
     try {
-      const { data, error } = await supabase.from('portfolio_data').select('*');
-      if (!error && data) {
-        data.forEach(row => {
+      const snapshot = await db.collection('portfolio_data').get();
+      if (!snapshot.empty) {
+        snapshot.forEach(doc => {
+          const key = doc.id;
+          const value = doc.data().value;
           // Utilise l'original originalSetItem pour éviter de réenclencher l'intercepteur en boucle
-          originalSetItem.call(localStorage, row.key, JSON.stringify(row.value));
+          originalSetItem.call(localStorage, key, JSON.stringify(value));
         });
-        console.log("[Supabase Cloud] Toutes les données du portfolio ont été synchronisées localement !");
+        console.log("[Firebase Cloud] Toutes les données du portfolio ont été synchronisées localement !");
       }
     } catch (e) {
-      console.error("Erreur de chargement initial Supabase Cloud :", e);
+      console.error("Erreur de chargement initial Firebase Cloud :", e);
     }
   }
 
@@ -1152,13 +1156,13 @@
       return new Date().toLocaleDateString('fr-FR', options);
     }
 
-    async function syncWithSupabase(item, action) {
-      if (!supabase) return;
+    async function syncWithFirebase(item, action) {
+      if (typeof db === 'undefined' || !db) return;
       try {
         if (action === 'delete') {
-          await supabase.from('deliveries').delete().eq('id', item.id);
+          await db.collection('deliveries').doc(item.id).delete();
         } else if (action === 'upsert') {
-          await supabase.from('deliveries').upsert({
+          await db.collection('deliveries').doc(item.id).set({
             id: item.id,
             code: item.code,
             client: item.client,
@@ -1168,7 +1172,7 @@
           });
         }
       } catch (err) {
-        console.error("Erreur de synchronisation Supabase :", err);
+        console.error("Erreur de synchronisation Firebase :", err);
       }
     }
 
@@ -1279,7 +1283,7 @@
       const target = deliveries.find(x => x.id === id);
       deliveries = deliveries.filter(x => x.id !== id);
       saveLocalStorageOnly();
-      if (target) syncWithSupabase(target, 'delete');
+      if (target) syncWithFirebase(target, 'delete');
       toast('Livraison supprimée');
     }
 
@@ -1332,7 +1336,7 @@
           toast('Livraison ajoutée');
         }
         saveLocalStorageOnly();
-        syncWithSupabase(data, 'upsert');
+        syncWithFirebase(data, 'upsert');
         resetForm();
       } catch (err) {
         console.error("Error saving delivery:", err);
@@ -1365,32 +1369,35 @@
   });
 
   // ============================================================
-  // Synchronisation Cloud Supabase pour l'Admin (CMS Global)
+  // Synchronisation Cloud Firebase pour l'Admin (CMS Global)
   // ============================================================
   async function syncCloudDataOnAdminStartup() {
-    if (typeof supabase === 'undefined' || !supabase) return;
+    if (typeof db === 'undefined' || !db) return;
     try {
-      const { data, error } = await supabase.from('portfolio_data').select('*');
-      if (!error && data) {
+      const snapshot = await db.collection('portfolio_data').get();
+      if (!snapshot.empty) {
         let hasChanges = false;
-        data.forEach(row => {
-          const localVal = localStorage.getItem(row.key);
-          const newValString = JSON.stringify(row.value);
+        snapshot.forEach(doc => {
+          const key = doc.id;
+          const value = doc.data().value;
+          
+          const localVal = localStorage.getItem(key);
+          const newValString = JSON.stringify(value);
           if (localVal !== newValString) {
-            localStorage.setItem(row.key, newValString);
+            localStorage.setItem(key, newValString);
             hasChanges = true;
           }
         });
         
-        // S'il y a des données neuves reçues de Supabase (ex: modifiées sur mobile),
+        // S'il y a des données neuves reçues de Firebase (ex: modifiées sur mobile),
         // on recharge l'admin pour afficher ces nouvelles valeurs à l'écran.
         if (hasChanges) {
-          console.log("[Supabase Cloud Admin] Données fraîches détectées ! Rechargement...");
+          console.log("[Firebase Cloud Admin] Données fraîches détectées ! Rechargement...");
           location.reload();
         }
       }
     } catch (e) {
-      console.error("[Supabase Cloud Admin] Erreur lors du chargement initial :", e);
+      console.error("[Firebase Cloud Admin] Erreur lors du chargement initial :", e);
     }
   }
 
