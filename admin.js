@@ -2,6 +2,37 @@
 // Admin — gestion complète du site
 // ============================================================
 (function () {
+  // Handler d'erreurs global pour le débogage de l'admin
+  window.addEventListener('error', (event) => {
+    console.error("Admin Error Caught:", event.error);
+    const errDiv = document.createElement('div');
+    errDiv.style.position = 'fixed';
+    errDiv.style.bottom = '80px'; // décalé pour ne pas chevaucher d'autres toasts
+    errDiv.style.left = '20px';
+    errDiv.style.right = '20px';
+    errDiv.style.background = '#e0245e';
+    errDiv.style.color = '#fff';
+    errDiv.style.padding = '12px 16px';
+    errDiv.style.borderRadius = '8px';
+    errDiv.style.fontSize = '12px';
+    errDiv.style.fontFamily = 'monospace';
+    errDiv.style.zIndex = '999999';
+    errDiv.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+    errDiv.textContent = `Erreur Admin: ${event.message} (${event.filename}:${event.lineno})`;
+    
+    const closeBtn = document.createElement('span');
+    closeBtn.textContent = ' ✕';
+    closeBtn.style.cursor = 'pointer';
+    closeBtn.style.float = 'right';
+    closeBtn.style.fontWeight = 'bold';
+    closeBtn.style.marginLeft = '10px';
+    closeBtn.onclick = () => errDiv.remove();
+    errDiv.appendChild(closeBtn);
+    
+    document.body.appendChild(errDiv);
+    setTimeout(() => { if(errDiv.parentNode) errDiv.remove(); }, 12000);
+  });
+
   const gate = document.getElementById('gate');
   const app = document.getElementById('admin-app');
   const gateEmail = document.getElementById('gate-email');
