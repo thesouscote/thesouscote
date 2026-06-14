@@ -1560,30 +1560,59 @@ if ('serviceWorker' in navigator) {
       let delivery = null;
       let loadedFromCloud = false;
 
+      // --- Tentative 1 : collection 'deliveries' (Firestore direct) ---
       if (typeof db !== 'undefined' && db) {
         try {
           const snapshot = await db.collection('deliveries').where('code', '==', code).get();
           if (!snapshot.empty) {
             const doc = snapshot.docs[0];
             const d = doc.data();
-            d.id = doc.id; // force id
+            d.id = doc.id;
             delivery = d;
             loadedFromCloud = true;
+            console.log('[Collecte] Code trouvé dans deliveries Firestore');
+          } else {
+            console.log('[Collecte] Code non trouvé dans deliveries Firestore, tentative portfolio_data...');
           }
         } catch (err) {
-          console.error("Erreur de recherche Firebase, repli sur LocalStorage...", err);
+          console.error('[Collecte] Erreur deliveries Firestore:', err);
         }
       }
 
-      // Repli sur le stockage local si Firebase non connecté, en erreur, ou code non trouvé dans le Cloud
+      // --- Tentative 2 : portfolio_data/admin_deliveries (Firestore CMS) ---
+      if (!loadedFromCloud && typeof db !== 'undefined' && db) {
+        try {
+          const doc = await db.collection('portfolio_data').doc('admin_deliveries').get();
+          if (doc.exists) {
+            const data = doc.data().value;
+            const deliveriesArr = (data && data.deliveries) ? data.deliveries : [];
+            const found = deliveriesArr.find(d => d.code && d.code.toUpperCase() === code);
+            if (found) {
+              delivery = found;
+              loadedFromCloud = true;
+              console.log('[Collecte] Code trouvé dans portfolio_data/admin_deliveries');
+            } else {
+              console.log('[Collecte] Code non trouvé dans portfolio_data. Codes disponibles:', deliveriesArr.map(d => d.code));
+            }
+          }
+        } catch (err) {
+          console.error('[Collecte] Erreur portfolio_data Firestore:', err);
+        }
+      }
+
+      // --- Tentative 3 : localStorage (même appareil) ---
       if (!loadedFromCloud) {
+        console.log('[Collecte] Repli sur localStorage...');
         const localDel = localStorage.getItem('admin_deliveries');
         if (localDel) {
           try {
             const parsed = JSON.parse(localDel).deliveries || [];
-            const found = parsed.find(x => x.code.toUpperCase() === code);
+            const found = parsed.find(x => x.code && x.code.toUpperCase() === code);
             if (found) {
               delivery = found;
+              console.log('[Collecte] Code trouvé dans localStorage');
+            } else {
+              console.log('[Collecte] Code non trouvé dans localStorage. Codes disponibles:', parsed.map(x => x.code));
             }
           } catch { /* ignore */ }
         }
