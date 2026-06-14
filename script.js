@@ -468,9 +468,20 @@ if ('serviceWorker' in navigator) {
     renderProjects = (list) => {
       projectsGrid.innerHTML = list.map((p) => {
         const imgUrl = typeof p.image === 'object' ? (p.image.url || '') : (p.image || '');
+        const isRecent = p.updatedAt && (Date.now() - Date.parse(p.updatedAt) < 3600000);
+        const badgeText = (document.documentElement.lang || 'fr') === 'fr' ? 'Mis à jour' : 'Updated';
+        const badgeHTML = isRecent ? `
+          <span class="card-badge">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:3px; display:inline-block; vertical-align:-1px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            ${badgeText}
+          </span>
+        ` : '';
         return `
         <a href="project-detail.html#${p.id}" class="card project-card reveal" style="text-decoration: none; color: inherit; display: block;">
-          <div class="card-media">${imgUrl ? `<img src="${imgUrl}" alt="${p.title}" loading="lazy" />` : ''}</div>
+          <div class="card-media">
+            ${badgeHTML}
+            ${imgUrl ? `<img src="${imgUrl}" alt="${p.title}" loading="lazy" />` : ''}
+          </div>
           <div class="card-body">
             ${p.tag ? `<span class="card-tag">${p.tag}</span>` : ''}
             <h3>${p.title}</h3>
@@ -753,9 +764,20 @@ if ('serviceWorker' in navigator) {
       resourcesGrid.innerHTML = filtered.map((r) => {
         const isFree = !r.price || r.price === 0;
         const cta = dict['projects.link'] || (lang === 'fr' ? 'En savoir plus →' : 'Learn more →');
+        const isRecent = r.updatedAt && (Date.now() - Date.parse(r.updatedAt) < 3600000);
+        const badgeText = (document.documentElement.lang || 'fr') === 'fr' ? 'Mis à jour' : 'Updated';
+        const badgeHTML = isRecent ? `
+          <span class="card-badge">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:3px; display:inline-block; vertical-align:-1px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            ${badgeText}
+          </span>
+        ` : '';
         return `
           <a href="market-detail.html#${r.id}" class="card resource-card reveal is-visible" style="text-decoration: none; color: inherit; display: block;">
-            <div class="card-media">${r.image ? `<img src="${r.image}" alt="${r.title}" loading="lazy" />` : ''}</div>
+            <div class="card-media">
+              ${badgeHTML}
+              ${r.image ? `<img src="${r.image}" alt="${r.title}" loading="lazy" />` : ''}
+            </div>
             <div class="card-body">
               <div class="resource-meta">
                 ${r.tag ? `<span class="card-tag">${r.tag}</span>` : ''}

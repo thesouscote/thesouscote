@@ -557,7 +557,8 @@
         stack: fStack.value.trim() ? fStack.value.trim().split(',').map(s => s.trim()) : [],
         link: fLink.value.trim() || '#',
         image: fImage.value.trim(),
-        gallery: gallery
+        gallery: gallery,
+        updatedAt: new Date().toISOString()
       };
       const isUpdate = !!fId.value;
       if (isUpdate) {
@@ -1183,7 +1184,8 @@
         paymentLink: rPaymentLink ? rPaymentLink.value.trim() : '',
         link: rLink.value.trim() || '#',
         image: rImage.value.trim(),
-        gallery: gallery
+        gallery: gallery,
+        updatedAt: new Date().toISOString()
       };
       const isUpdate = !!rId.value;
       if (isUpdate) {
