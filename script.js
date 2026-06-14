@@ -1303,30 +1303,30 @@
           const waLink = `https://wa.me/2250778835909?text=${bodyWA}`;
           const mailLink = `mailto:thesouscote@gmail.com?subject=${subject}&body=${bodyEmail}`;
           ctaEl.innerHTML = `
-            <div style="display:flex; flex-direction:column; gap:16px;">
+            <div style="display:flex; flex-direction:column; gap:16px; width:100%;">
               ${payLink !== '#' ? `
-              <a href="${payLink}" target="_blank" rel="noopener" class="btn btn-primary" style="text-align:center; justify-content:center;">
+              <a href="${payLink}" target="_blank" rel="noopener" class="btn btn-primary" style="text-align:center; justify-content:center; width:100%;">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
                 ${lang === 'fr' ? 'Payer maintenant' : 'Pay now'} →
               </a>` : ''}
-              <div style="background: var(--bg-alt); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; display:flex; flex-direction:column; gap:14px;">
+              <div style="background: var(--bg-alt); border: 1px solid var(--border); border-radius: 0; padding: 20px 24px; display:flex; flex-direction:column; gap:14px; width:100%;">
                 <p style="font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-muted); margin:0;">
                   ${lang === 'fr' ? 'Comment récupérer votre fichier' : 'How to get your file'}
                 </p>
                 <div style="display:flex; gap:12px; align-items:flex-start;">
-                  <span style="background:var(--text); color:var(--bg); border-radius:50%; min-width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">1</span>
+                  <span style="background:var(--text); color:var(--bg); border-radius:0; min-width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">1</span>
                   <p style="margin:0; font-size:14px; color:var(--text-muted); line-height:1.5;">${lang === 'fr' ? 'Effectuez votre paiement en cliquant sur le bouton ci-dessus.' : 'Complete your payment by clicking the button above.'}</p>
                 </div>
                 <div style="display:flex; gap:12px; align-items:flex-start;">
-                  <span style="background:var(--text); color:var(--bg); border-radius:50%; min-width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">2</span>
+                  <span style="background:var(--text); color:var(--bg); border-radius:0; min-width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">2</span>
                   <p style="margin:0; font-size:14px; color:var(--text-muted); line-height:1.5;">${lang === 'fr' ? 'Envoyez votre capture d\'écran de paiement via WhatsApp ou par email.' : 'Send your payment screenshot via WhatsApp or email.'}</p>
                 </div>
                 <div style="display:flex; gap:12px; align-items:flex-start;">
-                  <span style="background:var(--text); color:var(--bg); border-radius:50%; min-width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">3</span>
+                  <span style="background:var(--text); color:var(--bg); border-radius:0; min-width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">3</span>
                   <p style="margin:0; font-size:14px; color:var(--text-muted); line-height:1.5;">${lang === 'fr' ? 'Je vous envoie un <strong style="color:var(--text);">code secret</strong> personnel.' : 'I\'ll send you a personal <strong style="color:var(--text);">secret code</strong>.'}</p>
                 </div>
                 <div style="display:flex; gap:12px; align-items:flex-start;">
-                  <span style="background:var(--text); color:var(--bg); border-radius:50%; min-width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">4</span>
+                  <span style="background:var(--text); color:var(--bg); border-radius:0; min-width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">4</span>
                   <p style="margin:0; font-size:14px; color:var(--text-muted); line-height:1.5;">${lang === 'fr' ? 'Entrez ce code dans la page <a href="collecte.html" style="color:var(--text); font-weight:600; text-decoration:underline;">Collecte</a> pour télécharger votre fichier.' : 'Enter this code on the <a href="collecte.html" style="color:var(--text); font-weight:600; text-decoration:underline;">Collecte</a> page to download your file.'}</p>
                 </div>
                 <div style="display:flex; gap:10px; margin-top:4px; flex-wrap:wrap;">
