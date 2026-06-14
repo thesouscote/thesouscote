@@ -1,6 +1,14 @@
 // ============================================================
 // thesouscote — portfolio scripts
 // ============================================================
+
+// Service Worker Registration (PWA)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
+
 (function () {
   const root = document.documentElement;
 
