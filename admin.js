@@ -1520,16 +1520,33 @@
         list.innerHTML = '<li class="admin-empty">Aucune livraison enregistrée.</li>';
         return;
       }
-      list.innerHTML = deliveries.map(d => `
+      list.innerHTML = deliveries.map(d => {
+        let statusBadge = `<span style="font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 4px; background: rgba(0,255,0,0.1); color: #28a745; margin-left: 8px;">Nouveau</span>`;
+        if (d.openedAt) {
+          const expiryDate = d.expiry ? new Date(d.expiry) : null;
+          const today = new Date();
+          if (d.expiry && d.expiry.length <= 10) expiryDate.setHours(23, 59, 59, 999);
+          
+          if (expiryDate && today > expiryDate) {
+            statusBadge = `<span style="font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 4px; background: rgba(255,0,0,0.1); color: #dc3545; margin-left: 8px;">Expiré</span>`;
+          } else {
+            statusBadge = `<span style="font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 4px; background: rgba(255,165,0,0.1); color: #fd7e14; margin-left: 8px;">Ouvert - 24H</span>`;
+          }
+        } else if (d.expiry && new Date(d.expiry) < new Date()) {
+          statusBadge = `<span style="font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 4px; background: rgba(255,0,0,0.1); color: #dc3545; margin-left: 8px;">Expiré</span>`;
+        }
+
+        return `
         <li class="admin-item">
           <div class="admin-item-body">
             <div class="admin-item-title" style="font-size: 15px; font-weight: 700; margin-bottom: 8px;">
               ${esc(d.client)}
             </div>
-            <div style="margin-bottom: 12px;">
+            <div style="margin-bottom: 12px; display: flex; align-items: center;">
               <span class="sidebar-badge" style="background:var(--accent); color:var(--accent-contrast); font-size:11px; padding: 4px 8px; display: inline-block; letter-spacing: 0.05em; font-weight: 600;">
                 CODE: ${esc(d.code)}
               </span>
+              ${statusBadge}
             </div>
             <div class="admin-item-desc" style="font-size: 12px; color: var(--text-muted); line-height: 1.4;">
               Livré le : ${esc(d.date)}<br>
@@ -1540,8 +1557,8 @@
             <button class="btn btn-ghost btn-xs edit-del" data-id="${d.id}">Modifier</button>
             <button class="btn btn-ghost btn-xs danger del-del" data-id="${d.id}">Supprimer</button>
           </div>
-        </li>
-      `).join('');
+        </li>`;
+      }).join('');
 
       list.querySelectorAll('.edit-del').forEach(b => {
         b.addEventListener('click', () => editD(b.dataset.id));

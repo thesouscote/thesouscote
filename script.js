@@ -1574,15 +1574,59 @@ if ('serviceWorker' in navigator) {
 
       const delivery = DELIVERIES[code];
       if (delivery) {
+        // Logique de première ouverture (Activation 24H)
+        if (!delivery.openedAt && delivery.id !== 'demo') {
+          const now = new Date();
+          delivery.openedAt = now.toISOString();
+          // Expiration = maintenant + 24 heures
+          const expiry24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+          delivery.expiry = expiry24h.toISOString();
+
+          // MàJ Firestore
+          if (typeof db !== 'undefined' && db && delivery.id) {
+            db.collection('deliveries').doc(delivery.id).update({
+              openedAt: delivery.openedAt,
+              expiry: delivery.expiry
+            }).catch(e => console.error("Erreur màj ouverture:", e));
+          }
+          
+          // MàJ LocalStorage (si fallback)
+          const localDel = localStorage.getItem('admin_deliveries');
+          if (localDel) {
+            try {
+              const parsed = JSON.parse(localDel);
+              const idx = (parsed.deliveries || []).findIndex(d => d.id === delivery.id);
+              if (idx >= 0) {
+                parsed.deliveries[idx].openedAt = delivery.openedAt;
+                parsed.deliveries[idx].expiry = delivery.expiry;
+                localStorage.setItem('admin_deliveries', JSON.stringify(parsed));
+              }
+            } catch(e){}
+          }
+        }
+
         // Vérification de l'expiration
+        let warningText = "";
         if (delivery.expiry) {
           const expiryDate = new Date(delivery.expiry);
           const today = new Date();
-          // Reset hours for fair comparison
-          expiryDate.setHours(23, 59, 59, 999);
+          
+          // Si date courte (YYYY-MM-DD manuelle), on la met à 23:59:59
+          if (delivery.expiry.length <= 10) {
+            expiryDate.setHours(23, 59, 59, 999);
+          }
+          
           if (today > expiryDate) {
             statusEl.textContent = "Ce code de collecte a expiré.";
             return;
+          } else if (delivery.openedAt) {
+            // Affichage du temps restant
+            const diffHours = Math.max(0, Math.floor((expiryDate - today) / (1000 * 60 * 60)));
+            const diffMins = Math.max(0, Math.floor(((expiryDate - today) % (1000 * 60 * 60)) / (1000 * 60)));
+            warningText = `<div style="background: rgba(224, 36, 94, 0.1); color: #e0245e; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Attention : ce code expirera dans ${diffHours}h ${diffMins}m. Sauvegardez vos fichiers.
+            </div>`;
           }
         }
 
@@ -1591,7 +1635,10 @@ if ('serviceWorker' in navigator) {
         document.getElementById('delivery-notes').textContent = delivery.notes;
 
         const filesContainer = document.getElementById('delivery-files');
-        filesContainer.innerHTML = (delivery.files || []).map(file => `
+        // Inject warning if any
+        let warningHTML = warningText ? `<div style="margin-bottom: 20px;">${warningText}</div>` : '';
+        
+        filesContainer.innerHTML = warningHTML + (delivery.files || []).map(file => `
           <li class="delivery-file-item" style="flex-wrap: wrap;">
             <div style="flex: 1; min-width: 200px;">
               <div class="delivery-file-name">${file.name}</div>
