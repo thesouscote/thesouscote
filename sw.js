@@ -1,5 +1,5 @@
 // Service Worker — thesouscote PWA
-const CACHE_NAME = 'thesouscote-v1';
+const CACHE_NAME = 'thesouscote-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
