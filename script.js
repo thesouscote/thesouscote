@@ -96,7 +96,7 @@
       'contact.sending': 'Envoi en cours…',
       'contact.success': 'Message envoyé ! Je reviens vers vous rapidement.',
       'contact.error': 'Une erreur est survenue. Veuillez réessayer.',
-      'contact.or': '— ou par email direct —',
+      'contact.or': '— ou sur WhatsApp direct —',
       'draft.title': 'Draft',
       'draft.text': 'Old projects, drafts and abandoned ideas. Nothing is lost, everything recycles.',
       'draft.item1': 'abandoned out of laziness',
