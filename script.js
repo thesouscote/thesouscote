@@ -264,32 +264,70 @@
       }
     });
     
-    // Drag/Pan Event Listeners (Touch for mobile)
+    // Drag/Pan + Pinch-to-Zoom Event Listeners (Touch for mobile)
+    let lastPinchDist = 0;
+    let pinchBaseScale = 1;
+
+    function getTouchDist(t1, t2) {
+      const dx = t1.clientX - t2.clientX;
+      const dy = t1.clientY - t2.clientY;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+
     img.addEventListener('touchstart', (e) => {
-      if (scale <= 1 || e.touches.length !== 1) return;
-      isDragging = true;
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
-      baseX = translateX;
-      baseY = translateY;
-      updateZoom(false);
-    });
+      e.preventDefault();
+      if (e.touches.length === 2) {
+        // Pinch start
+        isDragging = false;
+        lastPinchDist = getTouchDist(e.touches[0], e.touches[1]);
+        pinchBaseScale = scale;
+      } else if (e.touches.length === 1 && scale > 1) {
+        // Pan start (only when zoomed)
+        isDragging = true;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        baseX = translateX;
+        baseY = translateY;
+        updateZoom(false);
+      }
+    }, { passive: false });
     
     img.addEventListener('touchmove', (e) => {
-      if (!isDragging || e.touches.length !== 1) return;
-      const dx = e.touches[0].clientX - startX;
-      const dy = e.touches[0].clientY - startY;
-      translateX = baseX + dx;
-      translateY = baseY + dy;
-      updateZoom(false);
-    });
+      e.preventDefault();
+      if (e.touches.length === 2) {
+        // Pinch zoom
+        const dist = getTouchDist(e.touches[0], e.touches[1]);
+        const ratio = dist / lastPinchDist;
+        scale = Math.max(minScale, Math.min(maxScale, pinchBaseScale * ratio));
+        if (scale <= 1) {
+          translateX = 0;
+          translateY = 0;
+        }
+        updateZoom(false);
+      } else if (isDragging && e.touches.length === 1) {
+        // Pan
+        const dx = e.touches[0].clientX - startX;
+        const dy = e.touches[0].clientY - startY;
+        translateX = baseX + dx;
+        translateY = baseY + dy;
+        updateZoom(false);
+      }
+    }, { passive: false });
     
-    img.addEventListener('touchend', () => {
-      if (isDragging) {
+    img.addEventListener('touchend', (e) => {
+      if (e.touches.length < 2) {
+        lastPinchDist = 0;
+      }
+      if (e.touches.length === 0) {
         isDragging = false;
         updateZoom(true);
       }
     });
+
+    // Block all default touch on the lightbox backdrop to prevent page movement
+    lb.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+    }, { passive: false });
 
     // Wheel zoom
     container.addEventListener('wheel', (e) => {
