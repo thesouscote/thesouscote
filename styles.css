@@ -1411,7 +1411,7 @@ kbd {
 #delivery-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 16px;
+  gap: 12px;
   list-style: none;
   padding: 0;
   margin: 0;
@@ -1422,13 +1422,12 @@ kbd {
   flex-direction: column;
   justify-content: space-between;
   align-items: flex-start;
-  aspect-ratio: 1 / 1;
-  padding: 18px;
+  padding: 12px;
   border: 1px solid var(--border);
   background: var(--bg-alt);
   box-sizing: border-box;
   width: 100%;
-  gap: 12px;
+  gap: 8px;
   transform: none !important;
   transition: none !important;
 }
@@ -1445,9 +1444,9 @@ kbd {
   display: flex;
   gap: 8px;
   justify-content: flex-start;
-  margin-top: auto;
+  margin-top: 4px;
   border-top: 1px solid var(--border);
-  padding-top: 12px;
+  padding-top: 8px;
   opacity: 1 !important;
 }
 
