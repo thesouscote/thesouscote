@@ -1926,6 +1926,10 @@ if ('serviceWorker' in navigator) {
   }, { passive: true });
   
   function handleSwipeGesture() {
+    // Si la lightbox est ouverte, on ignore le geste de swipe (pour éviter les retours involontaires pendant le zoom/déplacement)
+    if (document.querySelector('.lightbox')) {
+      return;
+    }
     // Swipe droite d'au moins 100px pour un effet de retour natif
     if (touchEndX - touchStartX > 100) {
       if (document.body.getAttribute('data-page') !== 'home') {
