@@ -293,18 +293,32 @@
 
   // ---------- Mobile menu ----------
   function initMobileMenu() {
-    const menuToggle = document.createElement('button');
-    menuToggle.className = 'admin-menu-toggle';
-    menuToggle.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
-    document.body.appendChild(menuToggle);
-    const overlay = document.createElement('div');
-    overlay.className = 'sidebar-overlay';
-    document.body.appendChild(overlay);
+    let menuToggle = document.getElementById('admin-menu-toggle');
+    if (!menuToggle) return;
+    
+    let overlay = document.querySelector('.sidebar-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.className = 'sidebar-overlay';
+      document.body.appendChild(overlay);
+    }
+    
     const sidebar = document.querySelector('.admin-sidebar');
+    
+    // Éviter les doublons d'écouteurs si init() est appelé plusieurs fois
+    const newToggle = menuToggle.cloneNode(true);
+    menuToggle.parentNode.replaceChild(newToggle, menuToggle);
+    menuToggle = newToggle;
+    
     menuToggle.addEventListener('click', () => {
       sidebar?.classList.toggle('is-open');
       overlay.classList.toggle('is-visible');
     });
+    
+    const newOverlay = overlay.cloneNode(true);
+    overlay.parentNode.replaceChild(newOverlay, overlay);
+    overlay = newOverlay;
+    
     overlay.addEventListener('click', () => {
       sidebar?.classList.remove('is-open');
       overlay.classList.remove('is-visible');

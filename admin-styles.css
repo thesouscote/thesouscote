@@ -754,33 +754,6 @@
   }
 }
 
-/* Mobile menu toggle button */
-.admin-menu-toggle {
-  display: none;
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  width: 48px;
-  height: 48px;
-  background: var(--text);
-  color: var(--bg);
-  border: none;
-  z-index: 60;
-  cursor: pointer;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-  transition: transform 0.2s ease;
-}
-.admin-menu-toggle:hover {
-  transform: scale(1.05);
-}
-
-@media (max-width: 768px) {
-  .admin-menu-toggle {
-    display: flex;
-  }
-}
 
 /* Sidebar overlay (mobile) */
 .sidebar-overlay {
