@@ -1517,6 +1517,7 @@
             expiryHours: item.expiryHours || 24,
             expiry: item.expiry || null,
             openedAt: item.openedAt || null,
+            savedAt: item.savedAt || null,
             notes: item.notes,
             files: item.files
           });
@@ -1578,14 +1579,15 @@
     }
 
     function formatTimeRemaining(d) {
-      // Si pas encore ouvert
-      if (!d.openedAt) return null;
+      // Utilise openedAt si disponible, sinon savedAt comme point de départ
+      const startPoint = d.openedAt || d.savedAt;
+      if (!startPoint) return null;
 
       let expiryDate = null;
 
-      // Cas 1 : date d'expiration calculée depuis openedAt + expiryHours
-      if (d.openedAt && d.expiryHours) {
-        const opened = parseDate(d.openedAt);
+      // Cas 1 : calcul depuis le point de départ + expiryHours
+      if (startPoint && d.expiryHours) {
+        const opened = parseDate(startPoint);
         if (opened) {
           expiryDate = new Date(opened.getTime() + (Number(d.expiryHours) * 60 * 60 * 1000));
         }
@@ -1616,7 +1618,7 @@
       if (hours > 0 || days > 0) label += `${hours}h `;
       label += `${minutes}min`;
 
-      return { expired: false, label: label.trim() };
+      return { expired: false, label: label.trim(), notOpened: !d.openedAt };
     }
 
     function render() {
@@ -1646,14 +1648,24 @@
           if (tr) {
             if (tr.expired) {
               timeRemainingHtml = `<div style="margin-top:6px; font-size:11px; font-weight:600; color:#dc3545;">⏱ Collecte expirée</div>`;
+            } else if (tr.notOpened) {
+              timeRemainingHtml = `<div style="margin-top:6px; font-size:11px; font-weight:600; color:#fd7e14;">⏱ Expire dans : ${tr.label} (pas encore consulté)</div>`;
             } else {
               timeRemainingHtml = `<div style="margin-top:6px; font-size:11px; font-weight:600; color:#fd7e14;">⏱ Expire dans : ${tr.label}</div>`;
             }
           }
-        } else if (d.expiry) {
-          const expD = parseDate(d.expiry);
-          if (expD && expD < new Date()) {
-            statusBadge = `<span style="font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 4px; background: rgba(255,0,0,0.1); color: #dc3545; margin-left: 8px;">Expiré</span>`;
+        } else {
+          // Pas encore ouvert : utilise savedAt pour le countdown si disponible
+          const tr = formatTimeRemaining(d);
+          if (tr) {
+            if (tr.expired) {
+              statusBadge = `<span style="font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 4px; background: rgba(255,0,0,0.1); color: #dc3545; margin-left: 8px;">Expiré</span>`;
+              timeRemainingHtml = `<div style="margin-top:6px; font-size:11px; font-weight:600; color:#dc3545;">⏱ Collecte expirée</div>`;
+            } else {
+              timeRemainingHtml = `<div style="margin-top:6px; font-size:11px; font-weight:600; color:#fd7e14;">⏱ Expire dans : ${tr.label} (pas encore consulté)</div>`;
+            }
+          } else {
+            timeRemainingHtml = `<div style="margin-top:6px; font-size:11px; color:var(--text-muted);">⏱ Expire ${d.expiryHours || 24}h après ouverture</div>`;
           }
         }
 
@@ -1771,6 +1783,8 @@
           expiryHours: parseInt(fExpiryHours.value) || 24,
           expiry: currentExpiry,
           openedAt: currentOpenedAt,
+          // Preserve existing savedAt on update, set on creation
+          savedAt: isUpdate ? (deliveries.find(x => x.id === fId.value)?.savedAt || new Date().toISOString()) : new Date().toISOString(),
           notes: fNotes.value.trim() || "Merci pour votre confiance ! Voici vos fichiers finaux prêts à être téléchargés.",
           files: files
         };
