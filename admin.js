@@ -1577,6 +1577,48 @@
       }
     }
 
+    function formatTimeRemaining(d) {
+      // Si pas encore ouvert
+      if (!d.openedAt) return null;
+
+      let expiryDate = null;
+
+      // Cas 1 : date d'expiration calculée depuis openedAt + expiryHours
+      if (d.openedAt && d.expiryHours) {
+        const opened = parseDate(d.openedAt);
+        if (opened) {
+          expiryDate = new Date(opened.getTime() + (Number(d.expiryHours) * 60 * 60 * 1000));
+        }
+      }
+
+      // Cas 2 : date d'expiration explicite (fallback)
+      if (!expiryDate && d.expiry) {
+        expiryDate = parseDate(d.expiry);
+        if (expiryDate && typeof d.expiry === 'string' && d.expiry.length <= 10) {
+          expiryDate.setHours(23, 59, 59, 999);
+        }
+      }
+
+      if (!expiryDate) return null;
+
+      const now = new Date();
+      const diff = expiryDate - now;
+
+      if (diff <= 0) return { expired: true };
+
+      const totalMinutes = Math.floor(diff / 60000);
+      const days = Math.floor(totalMinutes / 1440);
+      const hours = Math.floor((totalMinutes % 1440) / 60);
+      const minutes = totalMinutes % 60;
+
+      let label = '';
+      if (days > 0) label += `${days}j `;
+      if (hours > 0 || days > 0) label += `${hours}h `;
+      label += `${minutes}min`;
+
+      return { expired: false, label: label.trim() };
+    }
+
     function render() {
       count.textContent = deliveries.length;
       if (!deliveries.length) {
@@ -1585,6 +1627,8 @@
       }
       list.innerHTML = deliveries.map(d => {
         let statusBadge = `<span style="font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 4px; background: rgba(0,255,0,0.1); color: #28a745; margin-left: 8px;">Nouveau</span>`;
+        let timeRemainingHtml = '';
+
         if (d.openedAt) {
           const expiryDate = parseDate(d.expiry);
           const today = new Date();
@@ -1596,6 +1640,15 @@
             statusBadge = `<span style="font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 4px; background: rgba(255,0,0,0.1); color: #dc3545; margin-left: 8px;">Expiré</span>`;
           } else {
             statusBadge = `<span style="font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 4px; background: rgba(255,165,0,0.1); color: #fd7e14; margin-left: 8px;">Ouvert - ${d.expiryHours || 24}H</span>`;
+          }
+
+          const tr = formatTimeRemaining(d);
+          if (tr) {
+            if (tr.expired) {
+              timeRemainingHtml = `<div style="margin-top:6px; font-size:11px; font-weight:600; color:#dc3545;">⏱ Collecte expirée</div>`;
+            } else {
+              timeRemainingHtml = `<div style="margin-top:6px; font-size:11px; font-weight:600; color:#fd7e14;">⏱ Expire dans : ${tr.label}</div>`;
+            }
           }
         } else if (d.expiry) {
           const expD = parseDate(d.expiry);
@@ -1619,6 +1672,7 @@
             <div class="admin-item-desc" style="font-size: 12px; color: var(--text-muted); line-height: 1.4;">
               Livré le : ${esc(d.date)}<br>
               ${d.files ? d.files.length : 0} fichier(s) prêt(s)
+              ${timeRemainingHtml}
             </div>
           </div>
           <div class="admin-item-actions">
