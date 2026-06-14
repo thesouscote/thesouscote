@@ -1586,10 +1586,17 @@ if ('serviceWorker' in navigator) {
       let delivery = null;
       let loadedFromCloud = false;
 
-      // --- Tentative 1 : collection 'deliveries' (Firestore direct) ---
+      // --- Tentative 1 : collection 'deliveries' (Firestore SERVEUR d'abord) ---
       if (typeof db !== 'undefined' && db) {
         try {
-          const snapshot = await db.collection('deliveries').where('code', '==', code).get();
+          // Force le serveur pour avoir les toutes dernières données
+          let snapshot;
+          try {
+            snapshot = await db.collection('deliveries').where('code', '==', code).get({ source: 'server' });
+          } catch (e) {
+            // Fallback cache si hors-ligne
+            snapshot = await db.collection('deliveries').where('code', '==', code).get({ source: 'cache' });
+          }
           if (!snapshot.empty) {
             const doc = snapshot.docs[0];
             const d = doc.data();
@@ -1605,10 +1612,15 @@ if ('serviceWorker' in navigator) {
         }
       }
 
-      // --- Tentative 2 : portfolio_data/admin_deliveries (Firestore CMS) ---
+      // --- Tentative 2 : portfolio_data/admin_deliveries (Firestore CMS SERVEUR d'abord) ---
       if (!loadedFromCloud && typeof db !== 'undefined' && db) {
         try {
-          const doc = await db.collection('portfolio_data').doc('admin_deliveries').get();
+          let doc;
+          try {
+            doc = await db.collection('portfolio_data').doc('admin_deliveries').get({ source: 'server' });
+          } catch (e) {
+            doc = await db.collection('portfolio_data').doc('admin_deliveries').get({ source: 'cache' });
+          }
           if (doc.exists) {
             const data = doc.data().value;
             const deliveriesArr = (data && data.deliveries) ? data.deliveries : [];

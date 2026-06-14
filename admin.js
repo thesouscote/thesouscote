@@ -86,14 +86,20 @@
     if (typeof db !== 'undefined' && db && CMS_KEYS.includes(key) && typeof valueStr === 'string' && valueStr.length > 0) {
       try {
         const parsed = JSON.parse(valueStr);
-        db.collection('portfolio_data').doc(key).set({ value: parsed })
+        const docRef = db.collection('portfolio_data').doc(key);
+        docRef.set({ value: parsed })
           .then(() => {
-            console.log('[Firebase Cloud] Synchronisation réussie pour [' + key + ']');
+            // Vérifie que l'écriture a bien atteint le SERVEUR (pas juste le cache local)
+            return docRef.get({ source: 'server' });
+          })
+          .then((doc) => {
+            console.log('[Firebase Cloud] Synchronisation SERVEUR confirmée pour [' + key + ']');
             toast('☁️ Sauvegardé dans le Cloud !');
           })
           .catch((error) => {
             console.error('Erreur Cloud pour [' + key + '] :', error);
-            toast('⚠️ Erreur Cloud : enregistré en local.');
+            // L'écriture est dans le cache local Firestore, elle sera synchronisée plus tard
+            toast('📱 Enregistré localement — synchronisation en attente…');
           });
       } catch (e) {
         console.warn('[Cloud] Valeur non-JSON ignorée pour [' + key + ']');
@@ -103,45 +109,56 @@
 
   async function loadAllCloudData() {
     if (typeof db === 'undefined' || !db) return;
-    try {
-      const snapshot = await db.collection('portfolio_data').get();
-      
-      const CMS_KEYS = [
-        'projects',
-        'admin_about',
-        'admin_experience',
-        'admin_contact',
-        'admin_resources',
-        'admin_trash',
-        'admin_site_meta',
-        'admin_deliveries',
-        'admin_categories'
-      ];
 
-      if (snapshot.empty) {
-        console.log("[Firebase Cloud] Base de données Firestore vide. Initialisation automatique...");
-        CMS_KEYS.forEach(key => {
-          const localVal = localStorage.getItem(key);
-          if (localVal) {
-            try {
-              const parsed = JSON.parse(localVal);
-              db.collection('portfolio_data').doc(key).set({ value: parsed });
-            } catch {}
-          }
-        });
-      } else {
-        snapshot.forEach(doc => {
-          const key = doc.id;
-          const value = doc.data().value;
-          if (value !== undefined) {
-            // Écrit directement dans localStorage (pas via saveToAdminDB pour ne pas re-push vers Firebase)
-            localStorage.setItem(key, JSON.stringify(value));
-          }
-        });
-        console.log("[Firebase Cloud] Toutes les données du portfolio ont été synchronisées localement !");
+    const CMS_KEYS = [
+      'projects',
+      'admin_about',
+      'admin_experience',
+      'admin_contact',
+      'admin_resources',
+      'admin_trash',
+      'admin_site_meta',
+      'admin_deliveries',
+      'admin_categories'
+    ];
+
+    // Tentative 1 : lire depuis le SERVEUR (pas le cache local) pour avoir les dernières données
+    let snapshot = null;
+    try {
+      snapshot = await db.collection('portfolio_data').get({ source: 'server' });
+      console.log('[Firebase Cloud] Données chargées depuis le SERVEUR.');
+    } catch (serverErr) {
+      console.warn('[Firebase Cloud] Serveur injoignable, repli sur le cache local…', serverErr);
+      try {
+        snapshot = await db.collection('portfolio_data').get({ source: 'cache' });
+        console.log('[Firebase Cloud] Données chargées depuis le CACHE local.');
+        toast('📱 Mode hors-ligne : données depuis le cache.');
+      } catch (cacheErr) {
+        console.error('[Firebase Cloud] Aucune source disponible.', cacheErr);
+        return;
       }
-    } catch (e) {
-      console.error("Erreur de chargement initial Firebase Cloud :", e);
+    }
+
+    if (!snapshot || snapshot.empty) {
+      console.log("[Firebase Cloud] Base de données Firestore vide. Initialisation automatique...");
+      CMS_KEYS.forEach(key => {
+        const localVal = localStorage.getItem(key);
+        if (localVal) {
+          try {
+            const parsed = JSON.parse(localVal);
+            db.collection('portfolio_data').doc(key).set({ value: parsed });
+          } catch {}
+        }
+      });
+    } else {
+      snapshot.forEach(doc => {
+        const key = doc.id;
+        const value = doc.data().value;
+        if (value !== undefined) {
+          localStorage.setItem(key, JSON.stringify(value));
+        }
+      });
+      console.log("[Firebase Cloud] Toutes les données du portfolio ont été synchronisées localement !");
     }
   }
 
@@ -1573,22 +1590,29 @@
       resetForm(); // Applique la pré-saisie de la date du jour au chargement
       render();
 
-      // 2. Synchronise avec Firebase (Cloud) si disponible
+      // 2. Synchronise avec Firebase (Cloud) si disponible — force le SERVEUR
       if (typeof db !== 'undefined' && db) {
+        let snapshot = null;
         try {
-          const snapshot = await db.collection('deliveries').get();
-          if (!snapshot.empty) {
-            const cloudDeliveries = [];
-            snapshot.forEach(doc => {
-              const d = doc.data();
-              d.id = doc.id;
-              cloudDeliveries.push(d);
-            });
-            deliveries = cloudDeliveries;
-            saveLocalStorageOnly();
+          snapshot = await db.collection('deliveries').get({ source: 'server' });
+          console.log('[Deliveries] Données chargées depuis le SERVEUR.');
+        } catch (serverErr) {
+          console.warn('[Deliveries] Serveur injoignable, repli sur cache…', serverErr);
+          try {
+            snapshot = await db.collection('deliveries').get({ source: 'cache' });
+          } catch (cacheErr) {
+            console.error('[Deliveries] Aucune source disponible.');
           }
-        } catch (err) {
-          console.error("Erreur de récupération Firebase deliveries :", err);
+        }
+        if (snapshot && !snapshot.empty) {
+          const cloudDeliveries = [];
+          snapshot.forEach(doc => {
+            const d = doc.data();
+            d.id = doc.id;
+            cloudDeliveries.push(d);
+          });
+          deliveries = cloudDeliveries;
+          saveLocalStorageOnly();
         }
       }
     }
