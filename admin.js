@@ -56,11 +56,14 @@
     t._tid = setTimeout(() => t.classList.remove('is-visible'), 2600);
   }
 
-  // ---------- Intercepteur Firebase CMS (Sauvegarde Automatique) ----------
-  const originalSetItem = localStorage.setItem;
-  localStorage.setItem = function (key, value) {
-    originalSetItem.apply(this, arguments);
-    
+  // ---------- Sauvegarde Firebase CMS (explicite, compatible mobile) ----------
+  window.saveToAdminDB = function (key, valueStr) {
+    try {
+      localStorage.setItem(key, valueStr);
+    } catch (e) {
+      console.warn('localStorage error:', e);
+    }
+
     const CMS_KEYS = [
       'projects',
       'admin_about',
@@ -72,21 +75,21 @@
       'admin_deliveries',
       'admin_categories'
     ];
-    
-    if (typeof db !== 'undefined' && db && CMS_KEYS.includes(key) && typeof value === 'string' && value.length > 0) {
+
+    if (typeof db !== 'undefined' && db && CMS_KEYS.includes(key) && typeof valueStr === 'string' && valueStr.length > 0) {
       try {
-        const parsed = JSON.parse(value);
+        const parsed = JSON.parse(valueStr);
         db.collection('portfolio_data').doc(key).set({ value: parsed })
           .then(() => {
-            console.log(`[Firebase Cloud] Synchronisation réussie pour [${key}]`);
-            toast(`☁️ Sauvegardé dans le Cloud !`);
+            console.log('[Firebase Cloud] Synchronisation réussie pour [' + key + ']');
+            toast('☁️ Sauvegardé dans le Cloud !');
           })
           .catch((error) => {
-            console.error(`Erreur de synchronisation Cloud pour [${key}] :`, error);
-            toast(`⚠️ Erreur Cloud : enregistré en local.`);
+            console.error('Erreur Cloud pour [' + key + '] :', error);
+            toast('⚠️ Erreur Cloud : enregistré en local.');
           });
       } catch (e) {
-        console.warn(`[Cloud] Valeur non-JSON ignorée pour [${key}]`);
+        console.warn('[Cloud] Valeur non-JSON ignorée pour [' + key + ']');
       }
     }
   };
@@ -124,8 +127,8 @@
           const key = doc.id;
           const value = doc.data().value;
           if (value !== undefined) {
-            // Utilise l'original originalSetItem pour éviter de réenclencher l'intercepteur en boucle
-            originalSetItem.call(localStorage, key, JSON.stringify(value));
+            // Écrit directement dans localStorage (pas via saveToAdminDB pour ne pas re-push vers Firebase)
+            localStorage.setItem(key, JSON.stringify(value));
           }
         });
         console.log("[Firebase Cloud] Toutes les données du portfolio ont été synchronisées localement !");
@@ -404,7 +407,7 @@
     let projects = [];
 
     function save() {
-      localStorage.setItem(KEY, JSON.stringify({ projects }));
+      window.saveToAdminDB(KEY, JSON.stringify({ projects }));
       render();
     }
 
@@ -691,7 +694,7 @@
       e.preventDefault();
       data.bioFr = bioFr.value;
       data.cv = cvInput.value;
-      localStorage.setItem(KEY, JSON.stringify(data));
+      window.saveToAdminDB(KEY, JSON.stringify(data));
       toast('À propos enregistré');
     });
 
@@ -746,7 +749,7 @@
     }
 
     function save() {
-      localStorage.setItem(KEY, JSON.stringify(items));
+      window.saveToAdminDB(KEY, JSON.stringify(items));
       render();
     }
 
@@ -934,7 +937,7 @@
       e.preventDefault();
       data.email = emailInput.value.trim();
       if (web3formsInput) data.web3forms = web3formsInput.value.trim();
-      localStorage.setItem(KEY, JSON.stringify(data));
+      window.saveToAdminDB(KEY, JSON.stringify(data));
       toast('Contact enregistré');
     });
 
@@ -1007,7 +1010,7 @@
       try { return JSON.parse(localStorage.getItem(CAT_KEY)) || [...DEFAULT_CATS]; }
       catch { return [...DEFAULT_CATS]; }
     }
-    function saveCats(cats) { localStorage.setItem(CAT_KEY, JSON.stringify(cats)); }
+    function saveCats(cats) { window.saveToAdminDB(CAT_KEY, JSON.stringify(cats)); }
     function renderCats() {
       const cats = loadCats();
       const saved = rCategory.value;
@@ -1044,7 +1047,7 @@
     renderCats();
 
     function save() {
-      localStorage.setItem(KEY, JSON.stringify({ resources }));
+      window.saveToAdminDB(KEY, JSON.stringify({ resources }));
       render();
     }
 
@@ -1262,7 +1265,7 @@
     const formTitle = document.getElementById('trash-form-title');
 
     function save() {
-      localStorage.setItem(KEY, JSON.stringify(items));
+      window.saveToAdminDB(KEY, JSON.stringify(items));
       render();
     }
 
@@ -1381,7 +1384,7 @@
     document.getElementById('save-meta-btn')?.addEventListener('click', () => {
       meta.title = titleInput.value.trim();
       meta.desc = descInput.value.trim();
-      localStorage.setItem(KEY, JSON.stringify(meta));
+      window.saveToAdminDB(KEY, JSON.stringify(meta));
       toast('Métadonnées enregistrées');
     });
 
@@ -1406,7 +1409,7 @@
       reader.onload = () => {
         try {
           const d = JSON.parse(reader.result);
-          Object.keys(d).forEach(k => localStorage.setItem(k, JSON.stringify(d[k])));
+          Object.keys(d).forEach(k => window.saveToAdminDB(k, JSON.stringify(d[k])));
           toast('Import complet réussi — rechargement…');
           setTimeout(() => location.reload(), 1000);
         } catch { toast('Fichier invalide'); }
@@ -1485,7 +1488,7 @@
     }
 
     function saveLocalStorageOnly() {
-      localStorage.setItem(KEY, JSON.stringify({ deliveries }));
+      window.saveToAdminDB(KEY, JSON.stringify({ deliveries }));
       render();
     }
 
