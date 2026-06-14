@@ -88,6 +88,26 @@
       min-width: 200px;
       text-align: center;
     }
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-top: 48px;
+      margin-bottom: 80px;
+    }
+    @media (max-width: 768px) {
+      .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .gallery-item {
+      width: 100%;
+      overflow: hidden;
+    }
+    .gallery-item img {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: contain;
+    }
   </style>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.svg" />
@@ -155,7 +175,7 @@
 
         <div id="res-cta" class="market-detail-cta"></div>
 
-        <div id="res-gallery" class="gallery-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 48px; margin-bottom: 80px;">
+        <div id="res-gallery" class="gallery-grid">
           <!-- Extra visuals will be rendered here dynamically -->
         </div>
       </div>
