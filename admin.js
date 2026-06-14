@@ -1452,7 +1452,7 @@
       render();
 
       // 2. Synchronise avec Supabase (Cloud) si disponible
-      if (supabase) {
+      if (typeof supabase !== 'undefined' && supabase) {
         try {
           const { data, error } = await supabase.from('deliveries').select('*');
           if (!error && data) {
@@ -1554,11 +1554,11 @@
         }
 
         const files = [];
-        if (fF1Name.value.trim()) {
-          files.push({ name: fF1Name.value.trim(), size: "Prêt", url: fF1Url.value.trim() || "#" });
+        if (fF1Name.value.trim() || fF1Url.value.trim()) {
+          files.push({ name: fF1Name.value.trim() || "Fichier principal", size: "Prêt", url: fF1Url.value.trim() || "#" });
         }
-        if (fF2Name.value.trim()) {
-          files.push({ name: fF2Name.value.trim(), size: "Prêt", url: fF2Url.value.trim() || "#" });
+        if (fF2Name.value.trim() || fF2Url.value.trim()) {
+          files.push({ name: fF2Name.value.trim() || "Fichier secondaire", size: "Prêt", url: fF2Url.value.trim() || "#" });
         }
 
         const data = {
