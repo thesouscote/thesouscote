@@ -58,6 +58,18 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="number"],
+input[type="password"],
+input[type="search"],
+input[type="url"],
+textarea,
+select {
+  border-radius: 0 !important;
+}
+
 /* ---------- Custom Cursor ---------- */
 @media (min-width: 769px) {
   body, a, button, input, textarea, select, .lightbox img { cursor: none !important; }

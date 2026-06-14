@@ -1449,6 +1449,7 @@
     const fReset = document.getElementById('delivery-reset');
     const formTitle = document.getElementById('delivery-form-title');
     const btnGen = document.getElementById('btn-generate-code');
+    const btnCopy = document.getElementById('btn-copy-code');
 
     const KEY = 'admin_deliveries';
     let deliveries = [];
@@ -1466,6 +1467,34 @@
         const key = `${genPart(4)}-${genPart(4)}-${genPart(4)}`;
         fCode.value = key;
         toast('Clé de licence générée !');
+      });
+    }
+
+    if (btnCopy) {
+      btnCopy.addEventListener('click', () => {
+        const val = fCode.value.trim();
+        if (!val) {
+          toast('Aucun code à copier !');
+          return;
+        }
+        navigator.clipboard.writeText(val)
+          .then(() => toast('Code copié dans le presse-papiers !'))
+          .catch(() => {
+            const el = document.createElement('textarea');
+            el.value = val;
+            el.setAttribute('readonly', '');
+            el.style.position = 'absolute';
+            el.style.left = '-9999px';
+            document.body.appendChild(el);
+            el.select();
+            try {
+              document.execCommand('copy');
+              toast('Code copié !');
+            } catch (err) {
+              toast('Erreur de copie');
+            }
+            document.body.removeChild(el);
+          });
       });
     }
 
