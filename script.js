@@ -43,6 +43,50 @@ if ('serviceWorker' in navigator) {
     setTimeout(() => { if(errDiv.parentNode) errDiv.remove(); }, 10000);
   });
 
+  // ---------- Custom Cursor ----------
+  if (window.innerWidth > 768) {
+    const cursor = document.createElement('div');
+    cursor.className = 'custom-cursor';
+    document.body.appendChild(cursor);
+    
+    let cursorX = window.innerWidth / 2;
+    let cursorY = window.innerHeight / 2;
+    let mouseX = cursorX;
+    let mouseY = cursorY;
+    
+    // Smooth follow
+    function renderCursor() {
+      // Linear interpolation for smoothness
+      cursorX += (mouseX - cursorX) * 0.2;
+      cursorY += (mouseY - cursorY) * 0.2;
+      cursor.style.transform = `translate(${cursorX}px, ${cursorY}px) translate(-50%, -50%)`;
+      requestAnimationFrame(renderCursor);
+    }
+    requestAnimationFrame(renderCursor);
+    
+    window.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    });
+    
+    // Hover effects on interactive elements
+    const updateInteractiveElements = () => {
+      const interactives = document.querySelectorAll('a, button, input, textarea, select, .lightbox img, .market-detail-image');
+      interactives.forEach(el => {
+        if (!el.hasAttribute('data-cursor-attached')) {
+          el.setAttribute('data-cursor-attached', 'true');
+          el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+          el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+        }
+      });
+    };
+    
+    // Initial attach and observe DOM changes
+    updateInteractiveElements();
+    const observer = new MutationObserver(() => updateInteractiveElements());
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+
   // Variables globales de rendu pour les mises à jour dynamiques
   let renderProjects = null;
   let renderResources = null;
@@ -1530,18 +1574,33 @@ if ('serviceWorker' in navigator) {
 
       const delivery = DELIVERIES[code];
       if (delivery) {
+        // Vérification de l'expiration
+        if (delivery.expiry) {
+          const expiryDate = new Date(delivery.expiry);
+          const today = new Date();
+          // Reset hours for fair comparison
+          expiryDate.setHours(23, 59, 59, 999);
+          if (today > expiryDate) {
+            statusEl.textContent = "Ce code de collecte a expiré.";
+            return;
+          }
+        }
+
         document.getElementById('delivery-client').textContent = "Créations : " + delivery.client;
         document.getElementById('delivery-date').textContent = "Livré le " + delivery.date;
         document.getElementById('delivery-notes').textContent = delivery.notes;
 
         const filesContainer = document.getElementById('delivery-files');
         filesContainer.innerHTML = (delivery.files || []).map(file => `
-          <li class="delivery-file-item">
-            <div>
+          <li class="delivery-file-item" style="flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 200px;">
               <div class="delivery-file-name">${file.name}</div>
               <div class="delivery-file-size">${file.size || 'Prêt'}</div>
             </div>
-            <a href="${file.url}" download class="btn btn-primary" style="padding: 6px 14px; font-size: 13px;">Télécharger</a>
+            <div style="display: flex; gap: 8px;">
+              <a href="${file.url}" target="_blank" class="btn btn-ghost" style="padding: 6px 14px; font-size: 13px;">Aperçu</a>
+              <a href="${file.url}" download class="btn btn-primary" style="padding: 6px 14px; font-size: 13px;">Télécharger</a>
+            </div>
           </li>
         `).join('');
 
@@ -1803,4 +1862,48 @@ if ('serviceWorker' in navigator) {
   backToTop.addEventListener('click', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
+
+  // ============================================================
+  // Gestes Mobile (Swipe Back)
+  // ============================================================
+  let touchStartX = 0;
+  let touchEndX = 0;
+  
+  document.addEventListener('touchstart', e => {
+    touchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+  
+  document.addEventListener('touchend', e => {
+    touchEndX = e.changedTouches[0].screenX;
+    handleSwipeGesture();
+  }, { passive: true });
+  
+  function handleSwipeGesture() {
+    // Swipe droite d'au moins 100px pour un effet de retour natif
+    if (touchEndX - touchStartX > 100) {
+      if (document.body.getAttribute('data-page') !== 'home') {
+        window.history.back();
+      }
+    }
+  }
+
+  // ============================================================
+  // Statistiques de visites (Firebase)
+  // ============================================================
+  function trackVisit() {
+    if (sessionStorage.getItem('visit_tracked') === 'true') return;
+    if (typeof db === 'undefined' || !db) return;
+    try {
+      db.collection('stats').doc('visits').set({
+        count: firebase.firestore.FieldValue.increment(1),
+        last_visit: new Date().toISOString()
+      }, { merge: true }).then(() => {
+        sessionStorage.setItem('visit_tracked', 'true');
+      }).catch(err => console.log('Stats ignorées:', err.message));
+    } catch(e) {}
+  }
+  
+  // Attendre un peu avant d'enregistrer pour éviter les bots
+  setTimeout(trackVisit, 2000);
+
 })();

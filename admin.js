@@ -246,6 +246,20 @@
     initTrash();
     initDeliveries();
     initSettings();
+    fetchStats();
+  }
+
+  function fetchStats() {
+    if (typeof db === 'undefined' || !db) return;
+    try {
+      db.collection('stats').doc('visits').get().then(doc => {
+        if (doc.exists) {
+          const count = doc.data().count || 0;
+          const el = document.getElementById('admin-visits-count');
+          if (el) el.textContent = count;
+        }
+      });
+    } catch(e) {}
   }
 
   // ---------- Tabs ----------
@@ -403,7 +417,7 @@
         return;
       }
       list.innerHTML = projects.map((p, i) => `
-          <li class="admin-item">
+          <li class="admin-item" draggable="true" data-index="${i}" style="cursor: grab;">
             <div class="admin-item-thumb">${p.image ? `<img src="${typeof p.image === 'object' && p.image.url ? esc(p.image.url) : esc(p.image)}" alt="">` : ''}</div>
             <div class="admin-item-body">
               <div class="admin-item-title">${esc(p.title)} ${p.tag ? `<span class="item-tag">${esc(p.tag)}</span>` : ''}</div>
@@ -416,6 +430,39 @@
               <button type="button" data-del="${p.id}" class="btn btn-ghost btn-sm btn-del">×</button>
             </div>
           </li>`).join('');
+          
+      // Gestionnaire de Drag & Drop
+      let draggedIndex = null;
+      list.querySelectorAll('.admin-item').forEach(item => {
+        item.addEventListener('dragstart', (e) => {
+          draggedIndex = parseInt(item.dataset.index);
+          e.dataTransfer.effectAllowed = 'move';
+          item.style.opacity = '0.5';
+        });
+        item.addEventListener('dragover', (e) => {
+          e.preventDefault(); // Nécessaire pour autoriser le drop
+          e.dataTransfer.dropEffect = 'move';
+          item.style.borderTop = '2px solid var(--accent)';
+        });
+        item.addEventListener('dragleave', () => {
+          item.style.borderTop = '';
+        });
+        item.addEventListener('drop', (e) => {
+          e.preventDefault();
+          item.style.borderTop = '';
+          const targetIndex = parseInt(item.dataset.index);
+          if (draggedIndex !== null && draggedIndex !== targetIndex) {
+            const draggedProject = projects[draggedIndex];
+            projects.splice(draggedIndex, 1);
+            projects.splice(targetIndex, 0, draggedProject);
+            save();
+          }
+        });
+        item.addEventListener('dragend', () => {
+          item.style.opacity = '1';
+        });
+      });
+
       list.querySelectorAll('[data-pmoveup]').forEach(b =>
         b.addEventListener('click', () => {
           const i = parseInt(b.dataset.pmoveup);
@@ -1367,6 +1414,7 @@
     const fClient = document.getElementById('del-client');
     const fDate = document.getElementById('del-date');
     const fNotes = document.getElementById('del-notes');
+    const fExpiry = document.getElementById('del-expiry');
     const fF1Name = document.getElementById('del-f1-name');
     const fF1Url = document.getElementById('del-f1-url');
     const fF2Name = document.getElementById('del-f2-name');
@@ -1411,6 +1459,7 @@
             code: item.code,
             client: item.client,
             date: item.date,
+            expiry: item.expiry || null,
             notes: item.notes,
             files: item.files
           });
@@ -1509,6 +1558,7 @@
       fCode.value = d.code || '';
       fClient.value = d.client || '';
       fDate.value = d.date || '';
+      fExpiry.value = d.expiry || '';
       fNotes.value = d.notes || '';
       
       // Load file 1
@@ -1534,6 +1584,7 @@
     function resetForm() {
       form.reset();
       fId.value = '';
+      fExpiry.value = '';
       fDate.value = getTodayFormatted(); // Remplit automatiquement la date du jour
       formTitle.textContent = 'Créer un espace client';
       fSubmit.textContent = 'Enregistrer la livraison';
@@ -1566,6 +1617,7 @@
           code: codeValue,
           client: fClient.value.trim(),
           date: fDate.value.trim(),
+          expiry: fExpiry.value || null,
           notes: fNotes.value.trim() || "Merci pour votre confiance ! Voici vos fichiers finaux prêts à être téléchargés.",
           files: files
         };

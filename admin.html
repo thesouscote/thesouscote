@@ -77,6 +77,9 @@
       <aside class="admin-sidebar">
         <div class="sidebar-header">
           <span class="sidebar-badge">Admin</span>
+          <div style="margin-top: 12px; font-size: 12px; color: var(--text-muted);">
+            Visites : <strong id="admin-visits-count" style="color: var(--text);">0</strong>
+          </div>
         </div>
         <nav class="sidebar-nav">
           <button class="sidebar-link is-active" data-tab="projects">
@@ -503,6 +506,11 @@
               <div class="form-group">
                 <label for="del-client">Nom du Client</label>
                 <input type="text" id="del-client" placeholder="Moke Patrick Armel" required />
+              </div>
+              <div class="form-group" style="grid-column: 1 / -1;">
+                <label for="del-expiry">Date d'expiration (optionnel)</label>
+                <input type="date" id="del-expiry" />
+                <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Si renseigné, le code deviendra inactif après cette date.</p>
               </div>
             </div>
             <div class="form-group">

@@ -58,6 +58,34 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* ---------- Custom Cursor ---------- */
+@media (min-width: 769px) {
+  body, a, button, input, textarea, select, .lightbox img { cursor: none !important; }
+  .custom-cursor {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: var(--accent);
+    mix-blend-mode: difference;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    z-index: 99999;
+    transition: width 0.2s ease, height 0.2s ease, background-color 0.2s ease;
+    will-change: width, height, transform;
+  }
+  .custom-cursor.hover {
+    width: 40px;
+    height: 40px;
+    background-color: #fff;
+  }
+}
+@media (max-width: 768px) {
+  .custom-cursor { display: none !important; }
+}
+
 html, body {
   -webkit-user-select: none;
   -moz-user-select: none;
