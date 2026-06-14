@@ -1654,7 +1654,6 @@
           files: files
         };
 
-        const isUpdate = !!fId.value;
         if (isUpdate) {
           const idx = deliveries.findIndex(x => x.id === fId.value);
           if (idx >= 0) deliveries[idx] = data;
