@@ -35,8 +35,6 @@
       width: 100%;
       max-width: 480px;
       aspect-ratio: 1 / 1;
-      border: 1px solid var(--border);
-      background: var(--bg-alt);
       margin: 0 auto 48px;
       overflow: hidden;
       cursor: zoom-in;
@@ -152,6 +150,10 @@
         </div>
 
         <div id="res-cta" class="market-detail-cta"></div>
+
+        <div id="res-gallery" class="gallery-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 48px; margin-bottom: 80px;">
+          <!-- Extra visuals will be rendered here dynamically -->
+        </div>
       </div>
     </section>
   </main>

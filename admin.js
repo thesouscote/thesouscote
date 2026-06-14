@@ -894,12 +894,47 @@
     const rDesc = document.getElementById('r-description');
     const rCategory = document.getElementById('r-category');
     const rPrice = document.getElementById('r-price');
+    const rPaymentLink = document.getElementById('r-payment-link');
     const rLink = document.getElementById('r-link');
     const rImage = document.getElementById('r-image');
     const rImageFile = document.getElementById('r-image-file');
+    const rGalleryRows = document.getElementById('r-gallery-rows');
+    const addRGalleryRowBtn = document.getElementById('add-r-gallery-row');
     const rSubmit = document.getElementById('r-submit');
     const rReset = document.getElementById('r-reset');
     const formTitle = document.getElementById('resource-form-title');
+
+    const UPLOAD_SVG = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>`;
+
+    function addRGalleryRow(url = '') {
+      const row = document.createElement('div');
+      row.className = 'gallery-dyn-row';
+      row.style.cssText = 'display:flex;gap:8px;align-items:center;';
+      const uid = 'rgr-' + Date.now() + Math.random().toString(36).slice(2);
+      row.innerHTML = `
+        <input type="url" class="gallery-url" placeholder="https://…" value="${url}" style="flex:1;padding:10px 14px;background:var(--bg-alt);border:1px solid var(--border);color:var(--text);font:inherit;font-size:14px;outline:none;" />
+        <button type="button" class="btn btn-ghost gallery-paste" style="padding:0 12px;height:36px;">Coller</button>
+        <label class="file-upload-label" style="margin:0;min-width:auto;padding:0 12px;display:flex;align-items:center;justify-content:center;height:36px;">
+          ${UPLOAD_SVG}
+          <input type="file" accept="image/*" hidden />
+        </label>
+        <button type="button" class="btn btn-ghost btn-sm btn-del gallery-remove" style="padding:0 10px;height:36px;">×</button>
+      `;
+      row.querySelector('.gallery-remove').addEventListener('click', () => row.remove());
+      row.querySelector('.gallery-paste').addEventListener('click', async () => {
+        try { const t = await navigator.clipboard.readText(); row.querySelector('.gallery-url').value = t.trim(); } catch {}
+      });
+      row.querySelector('input[type="file"]').addEventListener('change', e => {
+        const file = e.target.files?.[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => { row.querySelector('.gallery-url').value = reader.result; };
+        reader.readAsDataURL(file);
+      });
+      rGalleryRows.appendChild(row);
+      return row;
+    }
+
+    if (addRGalleryRowBtn) addRGalleryRowBtn.addEventListener('click', () => addRGalleryRow());
 
     const KEY = 'admin_resources';
     const CAT_KEY = 'admin_categories';
@@ -1022,8 +1057,20 @@
       rDesc.value = r.description || '';
       rCategory.value = r.category || 'logo';
       rPrice.value = r.price || 0;
+      if (rPaymentLink) rPaymentLink.value = r.paymentLink || '';
       rLink.value = r.link || '';
       rImage.value = r.image || '';
+      
+      if (rGalleryRows) {
+        rGalleryRows.innerHTML = '';
+        const gallery = r.gallery || [];
+        if (gallery.length) {
+          gallery.forEach(item => addRGalleryRow(typeof item === 'object' ? item.url : item));
+        } else {
+          addRGalleryRow();
+        }
+      }
+
       rSubmit.textContent = 'Mettre à jour';
       formTitle.textContent = 'Modifier l\'élément';
       form.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1041,12 +1088,27 @@
       rId.value = '';
       rImage.value = '';
       rPrice.value = '';
+      if (rPaymentLink) rPaymentLink.value = '';
+      
+      if (rGalleryRows) {
+        rGalleryRows.innerHTML = '';
+        addRGalleryRow();
+      }
+
       rSubmit.textContent = 'Ajouter';
       formTitle.textContent = 'Ajouter au market';
     }
 
     form.addEventListener('submit', e => {
       e.preventDefault();
+      const gallery = [];
+      if (rGalleryRows) {
+        rGalleryRows.querySelectorAll('.gallery-dyn-row').forEach(row => {
+          const url = row.querySelector('.gallery-url').value.trim();
+          if (url) gallery.push(url);
+        });
+      }
+
       const data = {
         id: rId.value || newId(),
         title: rTitle.value.trim(),
@@ -1054,8 +1116,10 @@
         tag: rTag.value.trim(),
         category: rCategory.value,
         price: Number(rPrice.value) || 0,
+        paymentLink: rPaymentLink ? rPaymentLink.value.trim() : '',
         link: rLink.value.trim() || '#',
-        image: rImage.value.trim()
+        image: rImage.value.trim(),
+        gallery: gallery
       };
       const isUpdate = !!rId.value;
       if (isUpdate) {

@@ -127,6 +127,214 @@
   applyI18n('fr');
 
   // ============================================================
+  // Lightbox avec zoom
+  // ============================================================
+  function openLightbox(src, alt) {
+    const lb = document.createElement('div');
+    lb.className = 'lightbox';
+    lb.innerHTML = `
+      <div class="lb-controls">
+        <button type="button" class="lb-zoom-out" title="Dézoomer">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+        </button>
+        <span class="lb-zoom-level">100%</span>
+        <button type="button" class="lb-zoom-in" title="Zoomer">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+        </button>
+        <div style="width: 1px; height: 20px; background: rgba(255,255,255,0.2); margin: 0 4px;"></div>
+        <button type="button" class="lb-close" title="Fermer">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="lb-img-container">
+        <img src="${src}" alt="${alt}" style="max-width: 90vw; max-height: 90vh; object-fit: contain; transform: translate(0px, 0px) scale(1); transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1); cursor: zoom-in; user-select: none; -webkit-user-drag: none;" />
+      </div>
+    `;
+    document.body.classList.add('no-scroll');
+    document.body.appendChild(lb);
+    
+    const img = lb.querySelector('img');
+    const zoomInBtn = lb.querySelector('.lb-zoom-in');
+    const zoomOutBtn = lb.querySelector('.lb-zoom-out');
+    const zoomLevelText = lb.querySelector('.lb-zoom-level');
+    const closeBtn = lb.querySelector('.lb-close');
+    const container = lb.querySelector('.lb-img-container');
+    
+    let scale = 1;
+    let translateX = 0;
+    let translateY = 0;
+    const minScale = 1;
+    const maxScale = 4;
+    const scaleStep = 0.25;
+    
+    // Track drag state
+    let isDragging = false;
+    let startX = 0, startY = 0;
+    let baseX = 0, baseY = 0;
+    
+    const updateZoom = (useTransition = true) => {
+      if (useTransition) {
+        img.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
+      } else {
+        img.style.transition = 'none';
+      }
+      
+      // Clamp translation offsets when scale is near 1
+      if (scale <= 1) {
+        scale = 1;
+        translateX = 0;
+        translateY = 0;
+        img.style.cursor = 'zoom-in';
+      } else {
+        img.style.cursor = 'grab';
+        
+        // Clamp translations so image doesn't float completely off screen
+        const maxOffsetDragX = window.innerWidth * scale / 2;
+        const maxOffsetDragY = window.innerHeight * scale / 2;
+        translateX = Math.max(-maxOffsetDragX, Math.min(maxOffsetDragX, translateX));
+        translateY = Math.max(-maxOffsetDragY, Math.min(maxOffsetDragY, translateY));
+      }
+      
+      img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+      zoomLevelText.textContent = `${Math.round(scale * 100)}%`;
+    };
+    
+    // Zoom control click event handlers
+    zoomInBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (scale < maxScale) {
+        scale += scaleStep;
+        updateZoom(true);
+      }
+    });
+    
+    zoomOutBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (scale > minScale) {
+        scale -= scaleStep;
+        if (scale <= 1) {
+          scale = 1;
+          translateX = 0;
+          translateY = 0;
+        }
+        updateZoom(true);
+      }
+    });
+    
+    // Double click to zoom toggle
+    img.addEventListener('dblclick', (e) => {
+      e.stopPropagation();
+      if (scale > 1) {
+        scale = 1;
+        translateX = 0;
+        translateY = 0;
+      } else {
+        scale = 2;
+      }
+      updateZoom(true);
+    });
+    
+    // Drag/Pan Event Listeners (Mouse)
+    img.addEventListener('mousedown', (e) => {
+      if (scale <= 1) return;
+      e.preventDefault(); // prevent image drag ghosting
+      isDragging = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      baseX = translateX;
+      baseY = translateY;
+      img.style.cursor = 'grabbing';
+      updateZoom(false); // disable transition for instant responsiveness
+    });
+    
+    window.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      translateX = baseX + dx;
+      translateY = baseY + dy;
+      updateZoom(false);
+    });
+    
+    window.addEventListener('mouseup', () => {
+      if (isDragging) {
+        isDragging = false;
+        img.style.cursor = scale > 1 ? 'grab' : 'zoom-in';
+        updateZoom(true);
+      }
+    });
+    
+    // Drag/Pan Event Listeners (Touch for mobile)
+    img.addEventListener('touchstart', (e) => {
+      if (scale <= 1 || e.touches.length !== 1) return;
+      isDragging = true;
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      baseX = translateX;
+      baseY = translateY;
+      updateZoom(false);
+    });
+    
+    img.addEventListener('touchmove', (e) => {
+      if (!isDragging || e.touches.length !== 1) return;
+      const dx = e.touches[0].clientX - startX;
+      const dy = e.touches[0].clientY - startY;
+      translateX = baseX + dx;
+      translateY = baseY + dy;
+      updateZoom(false);
+    });
+    
+    img.addEventListener('touchend', () => {
+      if (isDragging) {
+        isDragging = false;
+        updateZoom(true);
+      }
+    });
+
+    // Wheel zoom
+    container.addEventListener('wheel', (e) => {
+      if (e.ctrlKey) return; // allow normal browser zoom if ctrl is pressed
+      e.preventDefault();
+      const delta = e.deltaY < 0 ? 0.25 : -0.25;
+      const newScale = Math.max(minScale, Math.min(maxScale, scale + delta));
+      if (newScale !== scale) {
+        scale = newScale;
+        if (scale <= 1) {
+          translateX = 0;
+          translateY = 0;
+        }
+        updateZoom(true);
+      }
+    }, { passive: false });
+    
+    // Close functions
+    const closeLb = () => {
+      if (lb.classList.contains('is-closing')) return;
+      lb.classList.add('is-closing');
+      document.body.classList.remove('no-scroll');
+      setTimeout(() => lb.remove(), 300);
+    };
+    
+    closeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeLb();
+    });
+    
+    lb.addEventListener('click', (e) => {
+      if (e.target === lb || e.target === container) {
+        closeLb();
+      }
+    });
+    
+    document.addEventListener('keydown', function esc(e) {
+      if (e.key === 'Escape') {
+        closeLb();
+        document.removeEventListener('keydown', esc);
+      }
+    });
+  }
+
+  // ============================================================
   // Logo inline + animation au chargement
   // ============================================================
   const LOGO_SVG = `
@@ -419,7 +627,10 @@
     // Liens de paiement — remplace par tes vrais liens
     const PAYPAL_LINK = 'https://paypal.me/thesouscote'; // Ton lien PayPal.me
 
-    const getPaymentLink = (title, price) => {
+    const getPaymentLink = (title, price, customPaymentLink) => {
+      if (customPaymentLink && customPaymentLink.trim() !== '') {
+        return customPaymentLink.trim();
+      }
       if (isEuroZone) {
         const eur = (price * XOF_TO_EUR).toFixed(2);
         return `${PAYPAL_LINK}/${eur}EUR`;
@@ -901,22 +1112,7 @@
           // Lightbox
           galleryEl.querySelectorAll('.gallery-item img').forEach(img => {
             img.addEventListener('click', () => {
-              const lb = document.createElement('div');
-              lb.className = 'lightbox';
-              lb.innerHTML = `<img src="${img.src}" alt="${img.alt}" />`;
-              document.body.classList.add('no-scroll');
-              
-              const closeLb = () => {
-                if (lb.classList.contains('is-closing')) return;
-                lb.classList.add('is-closing');
-                document.body.classList.remove('no-scroll');
-                setTimeout(() => lb.remove(), 300);
-              };
-              lb.addEventListener('click', closeLb);
-              document.addEventListener('keydown', function esc(e) {
-                if (e.key === 'Escape') { closeLb(); document.removeEventListener('keydown', esc); }
-              });
-              document.body.appendChild(lb);
+              openLightbox(img.src, img.alt);
             });
           });
           // Download buttons
@@ -1034,22 +1230,7 @@
         }, 1500);
 
         imgEl.addEventListener('click', () => {
-          const lb = document.createElement('div');
-          lb.className = 'lightbox';
-          lb.innerHTML = `<img src="${imgEl.src}" alt="${imgEl.alt}" />`;
-          document.body.classList.add('no-scroll');
-          
-          const closeLb = () => {
-            if (lb.classList.contains('is-closing')) return;
-            lb.classList.add('is-closing');
-            document.body.classList.remove('no-scroll');
-            setTimeout(() => lb.remove(), 300);
-          };
-          lb.addEventListener('click', closeLb);
-          document.addEventListener('keydown', function esc(e) {
-            if (e.key === 'Escape') { closeLb(); document.removeEventListener('keydown', esc); }
-          });
-          document.body.appendChild(lb);
+          openLightbox(imgEl.src, imgEl.alt);
         });
       }
 
@@ -1115,17 +1296,72 @@
             });
           }
         } else {
-          let payLink;
-          if (isEuro) {
-            const eur = (r.price * RATE).toFixed(2);
-            payLink = `${PAYPAL}/${eur}EUR`;
-          } else {
-            payLink = `https://pay.wave.com/m/M_0HDs6VQohDa2/c/ci/`;
-          }
+          let payLink = r.paymentLink ? r.paymentLink.trim() : '#';
+          const subject = encodeURIComponent(`Paiement — ${r.title}`);
+          const bodyEmail = encodeURIComponent(`Bonjour,\n\nJe viens d'effectuer le paiement pour : ${r.title}.\n\nCi-joint ma preuve de paiement.\n\nMerci !`);
+          const bodyWA = encodeURIComponent(`Bonjour ! Je viens de payer pour *${r.title}*. Voici ma preuve de paiement 👇`);
+          const waLink = `https://wa.me/2250778835909?text=${bodyWA}`;
+          const mailLink = `mailto:thesouscote@gmail.com?subject=${subject}&body=${bodyEmail}`;
           ctaEl.innerHTML = `
-            <a href="${payLink}" target="_blank" rel="noopener" class="btn btn-primary">${lang === 'fr' ? 'Acheter maintenant' : 'Buy now'} \u2192</a>
-            <a href="contact.html?subject=${encodeURIComponent(r.title)}" class="btn btn-ghost">${lang === 'fr' ? 'Poser une question' : 'Ask a question'}</a>
+            <div style="display:flex; flex-direction:column; gap:16px;">
+              ${payLink !== '#' ? `
+              <a href="${payLink}" target="_blank" rel="noopener" class="btn btn-primary" style="text-align:center; justify-content:center;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                ${lang === 'fr' ? 'Payer maintenant' : 'Pay now'} →
+              </a>` : ''}
+              <div style="background: var(--bg-alt); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; display:flex; flex-direction:column; gap:14px;">
+                <p style="font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-muted); margin:0;">
+                  ${lang === 'fr' ? 'Comment récupérer votre fichier' : 'How to get your file'}
+                </p>
+                <div style="display:flex; gap:12px; align-items:flex-start;">
+                  <span style="background:var(--text); color:var(--bg); border-radius:50%; min-width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">1</span>
+                  <p style="margin:0; font-size:14px; color:var(--text-muted); line-height:1.5;">${lang === 'fr' ? 'Effectuez votre paiement en cliquant sur le bouton ci-dessus.' : 'Complete your payment by clicking the button above.'}</p>
+                </div>
+                <div style="display:flex; gap:12px; align-items:flex-start;">
+                  <span style="background:var(--text); color:var(--bg); border-radius:50%; min-width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">2</span>
+                  <p style="margin:0; font-size:14px; color:var(--text-muted); line-height:1.5;">${lang === 'fr' ? 'Envoyez votre capture d\'écran de paiement via WhatsApp ou par email.' : 'Send your payment screenshot via WhatsApp or email.'}</p>
+                </div>
+                <div style="display:flex; gap:12px; align-items:flex-start;">
+                  <span style="background:var(--text); color:var(--bg); border-radius:50%; min-width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">3</span>
+                  <p style="margin:0; font-size:14px; color:var(--text-muted); line-height:1.5;">${lang === 'fr' ? 'Je vous envoie un <strong style="color:var(--text);">code secret</strong> personnel.' : 'I\'ll send you a personal <strong style="color:var(--text);">secret code</strong>.'}</p>
+                </div>
+                <div style="display:flex; gap:12px; align-items:flex-start;">
+                  <span style="background:var(--text); color:var(--bg); border-radius:50%; min-width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">4</span>
+                  <p style="margin:0; font-size:14px; color:var(--text-muted); line-height:1.5;">${lang === 'fr' ? 'Entrez ce code dans la page <a href="collecte.html" style="color:var(--text); font-weight:600; text-decoration:underline;">Collecte</a> pour télécharger votre fichier.' : 'Enter this code on the <a href="collecte.html" style="color:var(--text); font-weight:600; text-decoration:underline;">Collecte</a> page to download your file.'}</p>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:4px; flex-wrap:wrap;">
+                  <a href="${waLink}" target="_blank" rel="noopener" class="btn btn-ghost" style="flex:1; min-width:140px; text-align:center; justify-content:center; display:inline-flex; align-items:center; gap:8px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                    WhatsApp
+                  </a>
+                  <a href="${mailLink}" class="btn btn-ghost" style="flex:1; min-width:140px; text-align:center; justify-content:center; display:inline-flex; align-items:center; gap:8px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,12 2,6"></polyline></svg>
+                    Email
+                  </a>
+                </div>
+              </div>
+            </div>
           `;
+        }
+      }
+
+      const galleryEl = document.getElementById('res-gallery');
+      if (galleryEl) {
+        const gallery = r.gallery || [];
+        if (gallery.length > 0) {
+          galleryEl.innerHTML = gallery.map(imgUrl => `
+            <div class="gallery-item" style="overflow: hidden; cursor: zoom-in;">
+              <img src="${imgUrl}" style="width: 100%; height: auto; display: block; object-fit: contain;" alt="${(r.title || '').replace(/"/g, '&quot;')} gallery" loading="lazy">
+            </div>
+          `).join('');
+          
+          galleryEl.querySelectorAll('.gallery-item img').forEach(img => {
+            img.addEventListener('click', () => {
+              openLightbox(img.src, img.alt);
+            });
+          });
+        } else {
+          galleryEl.innerHTML = '';
         }
       }
     };
