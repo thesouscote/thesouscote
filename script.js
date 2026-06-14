@@ -1578,9 +1578,9 @@ if ('serviceWorker' in navigator) {
         if (!delivery.openedAt && delivery.id !== 'demo') {
           const now = new Date();
           delivery.openedAt = now.toISOString();
-          // Expiration = maintenant + 24 heures
-          const expiry24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-          delivery.expiry = expiry24h.toISOString();
+          const hoursToWait = delivery.expiryHours || 24;
+          const expiryTime = new Date(now.getTime() + hoursToWait * 60 * 60 * 1000);
+          delivery.expiry = expiryTime.toISOString();
 
           // MàJ Firestore
           if (typeof db !== 'undefined' && db && delivery.id) {

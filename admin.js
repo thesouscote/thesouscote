@@ -1414,7 +1414,7 @@
     const fClient = document.getElementById('del-client');
     const fDate = document.getElementById('del-date');
     const fNotes = document.getElementById('del-notes');
-    const fExpiry = document.getElementById('del-expiry');
+    const fExpiryHours = document.getElementById('del-expiry-hours');
     const fF1Name = document.getElementById('del-f1-name');
     const fF1Url = document.getElementById('del-f1-url');
     const fF2Name = document.getElementById('del-f2-name');
@@ -1459,6 +1459,7 @@
             code: item.code,
             client: item.client,
             date: item.date,
+            expiryHours: item.expiryHours || 24,
             expiry: item.expiry || null,
             notes: item.notes,
             files: item.files
@@ -1530,7 +1531,7 @@
           if (expiryDate && today > expiryDate) {
             statusBadge = `<span style="font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 4px; background: rgba(255,0,0,0.1); color: #dc3545; margin-left: 8px;">Expiré</span>`;
           } else {
-            statusBadge = `<span style="font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 4px; background: rgba(255,165,0,0.1); color: #fd7e14; margin-left: 8px;">Ouvert - 24H</span>`;
+            statusBadge = `<span style="font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 4px; background: rgba(255,165,0,0.1); color: #fd7e14; margin-left: 8px;">Ouvert - ${d.expiryHours || 24}H</span>`;
           }
         } else if (d.expiry && new Date(d.expiry) < new Date()) {
           statusBadge = `<span style="font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 4px; background: rgba(255,0,0,0.1); color: #dc3545; margin-left: 8px;">Expiré</span>`;
@@ -1575,7 +1576,7 @@
       fCode.value = d.code || '';
       fClient.value = d.client || '';
       fDate.value = d.date || '';
-      fExpiry.value = d.expiry || '';
+      fExpiryHours.value = d.expiryHours || '24';
       fNotes.value = d.notes || '';
       
       // Load file 1
@@ -1601,7 +1602,7 @@
     function resetForm() {
       form.reset();
       fId.value = '';
-      fExpiry.value = '';
+      fExpiryHours.value = '24';
       fDate.value = getTodayFormatted(); // Remplit automatiquement la date du jour
       formTitle.textContent = 'Créer un espace client';
       fSubmit.textContent = 'Enregistrer la livraison';
@@ -1629,12 +1630,26 @@
           files.push({ name: fF2Name.value.trim() || "Fichier secondaire", size: "Prêt", url: fF2Url.value.trim() || "#" });
         }
 
+        // Retrieve existing expiry if update, else null
+        const isUpdate = !!fId.value;
+        let currentExpiry = null;
+        let currentOpenedAt = null;
+        if (isUpdate) {
+          const exist = deliveries.find(x => x.id === fId.value);
+          if (exist) {
+            currentExpiry = exist.expiry || null;
+            currentOpenedAt = exist.openedAt || null;
+          }
+        }
+
         const data = {
           id: fId.value || 'del_' + Date.now(),
           code: codeValue,
           client: fClient.value.trim(),
           date: fDate.value.trim(),
-          expiry: fExpiry.value || null,
+          expiryHours: parseInt(fExpiryHours.value) || 24,
+          expiry: currentExpiry,
+          openedAt: currentOpenedAt,
           notes: fNotes.value.trim() || "Merci pour votre confiance ! Voici vos fichiers finaux prêts à être téléchargés.",
           files: files
         };
