@@ -1566,7 +1566,7 @@
           code: codeValue,
           client: fClient.value.trim(),
           date: fDate.value.trim(),
-          notes: fNotes.value.trim(),
+          notes: fNotes.value.trim() || "Merci pour votre confiance ! Voici vos fichiers finaux prêts à être téléchargés.",
           files: files
         };
 
