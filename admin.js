@@ -554,6 +554,13 @@
         const url = row.querySelector('.gallery-url').value.trim();
         if (url) gallery.push(url);
       });
+      
+      const isUpdate = !!fId.value;
+      let existingProj = null;
+      if (isUpdate) {
+        existingProj = projects.find(p => p.id === fId.value);
+      }
+
       const data = {
         id: fId.value || newId(),
         title: fTitle.value.trim(),
@@ -565,9 +572,10 @@
         link: fLink.value.trim() || '#',
         image: fImage.value.trim(),
         gallery: gallery,
-        updatedAt: new Date().toISOString()
+        createdAt: isUpdate ? (existingProj?.createdAt || existingProj?.updatedAt || new Date().toISOString()) : new Date().toISOString(),
+        updatedAt: isUpdate ? new Date().toISOString() : null
       };
-      const isUpdate = !!fId.value;
+      
       if (isUpdate) {
         const idx = projects.findIndex(p => p.id === fId.value);
         if (idx >= 0) projects[idx] = data;
@@ -1181,6 +1189,12 @@
         });
       }
 
+      const isUpdate = !!rId.value;
+      let existingRes = null;
+      if (isUpdate) {
+        existingRes = resources.find(x => x.id === rId.value);
+      }
+
       const data = {
         id: rId.value || newId(),
         title: rTitle.value.trim(),
@@ -1192,9 +1206,10 @@
         link: rLink.value.trim() || '#',
         image: rImage.value.trim(),
         gallery: gallery,
-        updatedAt: new Date().toISOString()
+        createdAt: isUpdate ? (existingRes?.createdAt || existingRes?.updatedAt || new Date().toISOString()) : new Date().toISOString(),
+        updatedAt: isUpdate ? new Date().toISOString() : null
       };
-      const isUpdate = !!rId.value;
+
       if (isUpdate) {
         const idx = resources.findIndex(x => x.id === rId.value);
         if (idx >= 0) resources[idx] = data;
