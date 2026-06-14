@@ -84,7 +84,7 @@
       'experience.date3': 'Avant 2022',
       'experience.role3': 'Apprentissage',
       'experience.desc3': 'Découverte du design, du code et de la typographie.',
-      'projects.title': 'Projets sélectionnés',
+      'projects.title': 'Projects',
       'projects.desc': 'Une courte description du projet, son objectif et le résultat obtenu.',
       'projects.link': 'En savoir plus →',
       'contact.title': 'Travaillons ensemble',
