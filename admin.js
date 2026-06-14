@@ -1591,6 +1591,20 @@
     load();
   }
 
+  // ---------- Drive Link Formatter ----------
+  function formatDriveLink(url) {
+    if (!url) return url;
+    let match = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (match && match[1]) {
+      return `https://drive.google.com/uc?export=download&id=${match[1]}`;
+    }
+    match = url.match(/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/);
+    if (match && match[1]) {
+      return `https://drive.google.com/uc?export=download&id=${match[1]}`;
+    }
+    return url;
+  }
+
   // ---------- Paste buttons helper ----------
   document.querySelectorAll('.paste-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
@@ -1598,16 +1612,38 @@
       const targetInput = document.getElementById(targetId);
       if (!targetInput) return;
       try {
-        const text = await navigator.clipboard.readText();
+        let text = await navigator.clipboard.readText();
         if (text) {
-          targetInput.value = text.trim();
-          toast('Collé !');
+          text = text.trim();
+          // Auto-format Google Drive links for URLs
+          if (targetInput.type === 'url' || targetId.includes('url') || targetId.includes('link')) {
+            const formatted = formatDriveLink(text);
+            if (formatted !== text) toast('Lien Drive formaté !');
+            else toast('Collé !');
+            text = formatted;
+          } else {
+            toast('Collé !');
+          }
+          targetInput.value = text;
         } else {
           toast('Presse-papiers vide');
         }
       } catch (err) {
         toast('Utilisez Ctrl+V (autorisation refusée)');
         console.warn('Clipboard read failed: ', err);
+      }
+    });
+  });
+
+  // Auto-format on blur for manually pasted links
+  document.querySelectorAll('input[type="url"], input[id*="url"], input[id*="link"]').forEach(input => {
+    input.addEventListener('blur', () => {
+      if (input.value) {
+        const formatted = formatDriveLink(input.value.trim());
+        if (formatted !== input.value.trim()) {
+          input.value = formatted;
+          toast('Lien Drive converti !');
+        }
       }
     });
   });
