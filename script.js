@@ -12,6 +12,13 @@ if ('serviceWorker' in navigator) {
 (function () {
   const root = document.documentElement;
 
+  const parseDate = (val) => {
+    if (!val) return null;
+    if (typeof val.toDate === 'function') return val.toDate();
+    if (val && typeof val === 'object' && typeof val.seconds === 'number') return new Date(val.seconds * 1000);
+    return new Date(val);
+  };
+
   // Handler d'erreurs global pour le débogage sur mobile
   window.addEventListener('error', (event) => {
     console.error("Global Error Caught:", event.error);
@@ -1550,19 +1557,17 @@ if ('serviceWorker' in navigator) {
       statusEl.style.color = "var(--text-muted)";
 
       // 1. Charger DYNAMIQUEMENT depuis Firebase (Cloud) ou localStorage
-      let DELIVERIES = {};
+      let delivery = null;
       let loadedFromCloud = false;
 
       if (typeof db !== 'undefined' && db) {
         try {
-          const snapshot = await db.collection('deliveries').get();
+          const snapshot = await db.collection('deliveries').where('code', '==', code).get();
           if (!snapshot.empty) {
-            snapshot.forEach(doc => {
-              const d = doc.data();
-              if (d && d.code) {
-                DELIVERIES[d.code.toUpperCase()] = d;
-              }
-            });
+            const doc = snapshot.docs[0];
+            const d = doc.data();
+            d.id = doc.id; // force id
+            delivery = d;
             loadedFromCloud = true;
           }
         } catch (err) {
@@ -1570,31 +1575,30 @@ if ('serviceWorker' in navigator) {
         }
       }
 
-      // Repli sur le stockage local si Firebase non connecté ou en erreur
+      // Repli sur le stockage local si Firebase non connecté, en erreur, ou code non trouvé dans le Cloud
       if (!loadedFromCloud) {
         const localDel = localStorage.getItem('admin_deliveries');
         if (localDel) {
           try {
             const parsed = JSON.parse(localDel).deliveries || [];
-            parsed.forEach(d => {
-              DELIVERIES[d.code.toUpperCase()] = d;
-            });
+            const found = parsed.find(x => x.code.toUpperCase() === code);
+            if (found) {
+              delivery = found;
+            }
           } catch { /* ignore */ }
         }
       }
 
-      // 2. Si le stockage complet est vide, utiliser les démos
-      if (Object.keys(DELIVERIES).length === 0) {
-        DELIVERIES = DEMO_DELIVERIES;
+      // 2. Repli sur les démos si non trouvé
+      if (!delivery && DEMO_DELIVERIES[code]) {
+        delivery = DEMO_DELIVERIES[code];
+        delivery.id = 'demo';
       }
 
       // Nettoie le message de recherche
       statusEl.textContent = "";
       statusEl.style.color = "#e0245e";
 
-      console.log("Recherche du code :", code, "parmi les codes chargés :", Object.keys(DELIVERIES));
-
-      const delivery = DELIVERIES[code];
       if (delivery) {
         // Logique de première ouverture (Activation 24H)
         if (!delivery.openedAt && delivery.id !== 'demo') {
@@ -1630,15 +1634,15 @@ if ('serviceWorker' in navigator) {
         // Vérification de l'expiration
         let warningText = "";
         if (delivery.expiry) {
-          const expiryDate = new Date(delivery.expiry);
+          let expiryDate = parseDate(delivery.expiry);
           const today = new Date();
           
           // Si date courte (YYYY-MM-DD manuelle), on la met à 23:59:59
-          if (delivery.expiry.length <= 10) {
-            expiryDate.setHours(23, 59, 59, 999);
+          if (delivery.expiry && typeof delivery.expiry === 'string' && delivery.expiry.length <= 10) {
+            if (expiryDate) expiryDate.setHours(23, 59, 59, 999);
           }
           
-          if (today > expiryDate) {
+          if (expiryDate && today > expiryDate) {
             statusEl.textContent = "Ce code de collecte a expiré.";
             return;
           } else if (delivery.openedAt) {

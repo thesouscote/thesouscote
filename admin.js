@@ -2,6 +2,13 @@
 // Admin — gestion complète du site
 // ============================================================
 (function () {
+  const parseDate = (val) => {
+    if (!val) return null;
+    if (typeof val.toDate === 'function') return val.toDate();
+    if (val && typeof val === 'object' && typeof val.seconds === 'number') return new Date(val.seconds * 1000);
+    return new Date(val);
+  };
+
   // Handler d'erreurs global pour le débogage de l'admin
   window.addEventListener('error', (event) => {
     console.error("Admin Error Caught:", event.error);
@@ -1480,6 +1487,7 @@
             date: item.date,
             expiryHours: item.expiryHours || 24,
             expiry: item.expiry || null,
+            openedAt: item.openedAt || null,
             notes: item.notes,
             files: item.files
           });
@@ -1520,16 +1528,22 @@
       resetForm(); // Applique la pré-saisie de la date du jour au chargement
       render();
 
-      // 2. Synchronise avec Supabase (Cloud) si disponible
-      if (typeof supabase !== 'undefined' && supabase) {
+      // 2. Synchronise avec Firebase (Cloud) si disponible
+      if (typeof db !== 'undefined' && db) {
         try {
-          const { data, error } = await supabase.from('deliveries').select('*');
-          if (!error && data) {
-            deliveries = data;
+          const snapshot = await db.collection('deliveries').get();
+          if (!snapshot.empty) {
+            const cloudDeliveries = [];
+            snapshot.forEach(doc => {
+              const d = doc.data();
+              d.id = doc.id;
+              cloudDeliveries.push(d);
+            });
+            deliveries = cloudDeliveries;
             saveLocalStorageOnly();
           }
         } catch (err) {
-          console.error("Erreur de récupération Supabase :", err);
+          console.error("Erreur de récupération Firebase deliveries :", err);
         }
       }
     }
@@ -1543,17 +1557,22 @@
       list.innerHTML = deliveries.map(d => {
         let statusBadge = `<span style="font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 4px; background: rgba(0,255,0,0.1); color: #28a745; margin-left: 8px;">Nouveau</span>`;
         if (d.openedAt) {
-          const expiryDate = d.expiry ? new Date(d.expiry) : null;
+          const expiryDate = parseDate(d.expiry);
           const today = new Date();
-          if (d.expiry && d.expiry.length <= 10) expiryDate.setHours(23, 59, 59, 999);
+          if (d.expiry && typeof d.expiry === 'string' && d.expiry.length <= 10) {
+            if (expiryDate) expiryDate.setHours(23, 59, 59, 999);
+          }
           
           if (expiryDate && today > expiryDate) {
             statusBadge = `<span style="font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 4px; background: rgba(255,0,0,0.1); color: #dc3545; margin-left: 8px;">Expiré</span>`;
           } else {
             statusBadge = `<span style="font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 4px; background: rgba(255,165,0,0.1); color: #fd7e14; margin-left: 8px;">Ouvert - ${d.expiryHours || 24}H</span>`;
           }
-        } else if (d.expiry && new Date(d.expiry) < new Date()) {
-          statusBadge = `<span style="font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 4px; background: rgba(255,0,0,0.1); color: #dc3545; margin-left: 8px;">Expiré</span>`;
+        } else if (d.expiry) {
+          const expD = parseDate(d.expiry);
+          if (expD && expD < new Date()) {
+            statusBadge = `<span style="font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 4px; background: rgba(255,0,0,0.1); color: #dc3545; margin-left: 8px;">Expiré</span>`;
+          }
         }
 
         return `
