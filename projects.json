@@ -1,0 +1,47 @@
+{
+  "projects": [
+    {
+      "id": "p1",
+      "title": "Projet Un",
+      "description": "Une courte description du projet, son objectif et le résultat obtenu.",
+      "image": "https://images.unsplash.com/photo-1581291518633-83b4ebd1d83e?auto=format&fit=crop&w=800&q=80",
+      "link": "#",
+      "tag": "Design",
+      "date": "2024",
+      "client": "Personnel",
+      "stack": ["Figma", "Illustrator"],
+      "gallery": [
+        "https://images.unsplash.com/photo-1586717791821-3f44a563fa4c?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=800&q=80"
+      ]
+    },
+    {
+      "id": "p2",
+      "title": "Projet Deux",
+      "description": "Une courte description du projet, son objectif et le résultat obtenu.",
+      "image": "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80",
+      "link": "#",
+      "tag": "Code",
+      "date": "2024",
+      "client": "Freelance",
+      "stack": ["HTML", "CSS", "JavaScript"],
+      "gallery": [
+        "https://images.unsplash.com/photo-1542831371-29b0f74f9713?auto=format&fit=crop&w=800&q=80"
+      ]
+    },
+    {
+      "id": "p3",
+      "title": "Projet Trois",
+      "description": "Une courte description du projet, son objectif et le résultat obtenu.",
+      "image": "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&w=800&q=80",
+      "link": "#",
+      "tag": "Vidéo",
+      "date": "2023",
+      "client": "Personnel",
+      "stack": ["Premiere Pro", "After Effects"],
+      "gallery": [
+        "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=800&q=80"
+      ]
+    }
+  ]
+}

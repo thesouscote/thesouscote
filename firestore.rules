@@ -1,0 +1,38 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ──────────────────────────────────────────────
+    // portfolio_data — contenu public du site
+    // Lecture : tout le monde (le site en a besoin)
+    // Écriture : utilisateurs authentifiés uniquement (admin)
+    // ──────────────────────────────────────────────
+    match /portfolio_data/{docId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // ──────────────────────────────────────────────
+    // deliveries — livraisons clients (Collecte)
+    // Lecture : tout le monde (le client doit pouvoir chercher par code)
+    // Écriture : utilisateurs authentifiés uniquement (admin)
+    // Mise à jour du champ openedAt/expiry : autorisée pour tous
+    //   (le client met à jour ces champs lors de la première ouverture)
+    // ──────────────────────────────────────────────
+    match /deliveries/{deliveryId} {
+      allow read: if true;
+      allow create, delete: if request.auth != null;
+      allow update: if request.auth != null
+                    || (request.resource.data.diff(resource.data).affectedKeys()
+                        .hasOnly(['openedAt', 'expiry']));
+    }
+
+    // ──────────────────────────────────────────────
+    // Tout le reste — bloqué par défaut
+    // ──────────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

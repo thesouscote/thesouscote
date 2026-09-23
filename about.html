@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>À propos — thesouscote | Moke Patrick Armel</title>
+  <meta name="description" content="Découvrez Moke Patrick Armel, designer et développeur indépendant passionné par le design minimaliste. Spécialiste UI/UX, développement web, typographie et prototypage." />
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+  
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="À propos — thesouscote" />
+  <meta property="og:description" content="Découvrez Moke Patrick Armel, designer et développeur indépendant passionné par le design minimaliste." />
+  <meta property="og:url" content="https://thesouscote.com/about.html" />
+  <meta property="og:image" content="assets/logo/Logo-thesouscote-noir.svg" />
+  <meta property="og:locale" content="fr_FR" />
+  <meta property="og:site_name" content="thesouscote" />
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="À propos — thesouscote" />
+  <meta name="twitter:description" content="Découvrez Moke Patrick Armel, designer et développeur indépendant passionné par le design minimaliste." />
+  
+  <!-- Additional SEO -->
+  <meta name="keywords" content="à propos, Moke Patrick Armel, designer, développeur, portfolio, design minimaliste, UI/UX, compétences" />
+  <meta name="author" content="Moke Patrick Armel" />
+  <meta name="robots" content="index, follow" />
+  
+  <!-- Schema.org markup -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "AboutPage",
+    "name": "À propos — thesouscote",
+    "url": "https://thesouscote.com/about.html",
+    "description": "Découvrez Moke Patrick Armel, designer et développeur indépendant passionné par le design minimaliste.",
+    "mainEntity": {
+      "@type": "Person",
+      "name": "Moke Patrick Armel",
+      "jobTitle": "Designer & Développeur Indépendant",
+      "description": "Passionné par le design minimaliste, spécialisé en UI/UX, développement web, typographie et prototypage.",
+      "url": "https://thesouscote.com/",
+      "sameAs": [
+        "https://instagram.com/thesouscote",
+        "https://github.com/thesouscote",
+        "https://linkedin.com/in/thesouscote"
+      ],
+      "knowsAbout": ["Design UI/UX", "HTML", "CSS", "JavaScript", "Typographie", "Prototypage"]
+    }
+  }
+  </script>
+  <script>(function(){try{var t=localStorage.getItem('theme');if(!t)t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+  <link rel="canonical" href="https://thesouscote.com/about.html" />
+  <link rel="preload" as="font" type="font/woff2" href="assets/fonts/sf-pro-display-regular.woff2" crossorigin />
+  <link rel="preload" as="font" type="font/woff2" href="assets/fonts/sf-pro-display-bold.woff2" crossorigin />
+  
+  <!-- Preconnect pour les ressources externes -->
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="styles.css?v=5" />
+  <link rel="icon" type="image/svg+xml" href="assets/logo/Logo-thesouscote-noir.svg" media="(prefers-color-scheme: light)" />
+  <link rel="icon" type="image/svg+xml" href="assets/logo/Logo-thesouscote-blanc.svg" media="(prefers-color-scheme: dark)" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.svg" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="thesouscote" />
+</head>
+<body data-page="about">
+  <a href="#main" class="skip-link">Skip to content</a>
+  <nav id="site-nav"></nav>
+
+  <div id="breadcrumb" class="breadcrumb"></div>
+
+  <main id="main">
+    <section class="section page">
+      <div class="container narrow">
+        <h2 class="section-title reveal" data-i18n="about.title">À propos</h2>
+        <p id="about-bio" class="section-text reveal" data-i18n="about.text">
+          Je m'appelle <strong>Moke Patrick Armel</strong>. Passionné par le design minimaliste, j'aime concevoir des produits clairs, accessibles et soignés dans le moindre détail. Mon approche : moins, mais mieux.
+        </p>
+        <ul id="about-skills" class="skills reveal">
+          <li data-i18n="about.skill1">Design UI/UX</li>
+          <li data-i18n="about.skill2">HTML · CSS · JavaScript</li>
+          <li data-i18n="about.skill3">Typographie</li>
+          <li data-i18n="about.skill4">Prototypage</li>
+        </ul>
+        <div class="about-cta reveal">
+          <a id="about-cv-link" href="assets/cv.pdf" download class="btn btn-ghost" data-i18n="about.cv">Télécharger mon CV ↓</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer id="site-footer"></footer>
+
+  <div id="cmdk"></div>
+
+  <script src="components.js"></script>
+  <!-- Firebase Integration (App & Firestore) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="script.js?v=7" defer></script>
+</body>
+</html>

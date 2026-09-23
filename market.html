@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Market — thesouscote | Logos, Cartes & Stickers</title>
+  <meta name="description" content="Market thesouscote : logos gratuits, cartes graphiques, stickers et créations sur commande. Design minimaliste et identités visuelles personnalisées à prix accessibles." />
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+  
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Market — thesouscote" />
+  <meta property="og:description" content="Logos gratuits, cartes graphiques, stickers et créations sur commande. Design minimaliste et identités visuelles personnalisées." />
+  <meta property="og:url" content="https://thesouscote.com/market.html" />
+  <meta property="og:image" content="assets/logo/Logo-thesouscote-noir.svg" />
+  <meta property="og:locale" content="fr_FR" />
+  <meta property="og:site_name" content="thesouscote" />
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Market — thesouscote" />
+  <meta name="twitter:description" content="Logos gratuits, cartes graphiques, stickers et créations sur commande." />
+  
+  <!-- Additional SEO -->
+  <meta name="keywords" content="market, logos gratuits, cartes graphiques, stickers, design sur commande, identité visuelle, design minimaliste, thesouscote" />
+  <meta name="author" content="Moke Patrick Armel" />
+  <meta name="robots" content="index, follow" />
+  
+  <!-- Schema.org markup -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "Market — thesouscote",
+    "url": "https://thesouscote.com/market.html",
+    "description": "Logos gratuits, cartes graphiques, stickers et créations sur commande.",
+    "mainEntity": {
+      "@type": "ItemList",
+      "itemListElement": [
+        {
+          "@type": "Product",
+          "position": 1,
+          "name": "Logos gratuits",
+          "description": "Pack de logos vectoriels au style épuré, libres d'utilisation",
+          "category": "Design"
+        },
+        {
+          "@type": "Product",
+          "position": 2,
+          "name": "Cartes graphiques",
+          "description": "Affiches et créations graphiques éditoriales",
+          "category": "Design"
+        },
+        {
+          "@type": "Product",
+          "position": 3,
+          "name": "Stickers",
+          "description": "Lot de stickers vinyle découpés",
+          "category": "Design"
+        }
+      ]
+    }
+  }
+  </script>
+  <script>(function(){try{var t=localStorage.getItem('theme');if(!t)t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+  <link rel="canonical" href="https://thesouscote.com/market.html" />
+  <link rel="preload" as="font" type="font/woff2" href="assets/fonts/sf-pro-display-regular.woff2" crossorigin />
+  <link rel="preload" as="font" type="font/woff2" href="assets/fonts/sf-pro-display-bold.woff2" crossorigin />
+  
+  <!-- Preconnect pour les ressources externes -->
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
+  <link rel="stylesheet" href="styles.css?v=5" />
+  <link rel="icon" type="image/svg+xml" href="assets/logo/Logo-thesouscote-noir.svg" media="(prefers-color-scheme: light)" />
+  <link rel="icon" type="image/svg+xml" href="assets/logo/Logo-thesouscote-blanc.svg" media="(prefers-color-scheme: dark)" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.svg" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="thesouscote" />
+</head>
+<body data-page="resources">
+  <a href="#main" class="skip-link">Skip to content</a>
+  <nav id="site-nav"></nav>
+
+  <div id="breadcrumb" class="breadcrumb"></div>
+
+  <main id="main">
+    <section class="section page">
+      <div class="container">
+        <h2 class="section-title reveal" data-i18n="resources.title">Market</h2>
+        <p class="section-text reveal" data-i18n="resources.intro">Logos gratuits, créations sur commande, cartes et stickers. Tout ce que je fabrique à côté.</p>
+
+        <div class="filters reveal" id="resources-filters">
+          <button type="button" class="filter-btn is-active" data-filter="all" data-i18n="resources.all">Tout</button>
+          <button type="button" class="filter-btn" data-filter="logo" data-i18n="resources.logo">Logos</button>
+          <button type="button" class="filter-btn" data-filter="carte" data-i18n="resources.carte">Cartes graphiques</button>
+          <button type="button" class="filter-btn" data-filter="sticker" data-i18n="resources.sticker">Stickers</button>
+          <button type="button" class="filter-btn" data-filter="free" data-i18n="resources.free">Gratuit</button>
+        </div>
+
+        <div id="resources-grid" class="grid"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer id="site-footer"></footer>
+
+  <div id="cmdk"></div>
+
+  <script src="components.js"></script>
+  <!-- Firebase Integration (App & Firestore) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="script.js?v=7" defer></script>
+</body>
+</html>

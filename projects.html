@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Projets — thesouscote | Portfolio de Design & Développement</title>
+  <meta name="description" content="Découvrez les projets de design et développement web de thesouscote. Sites web, identités visuelles, interfaces utilisateur et créations numériques minimalistes et élégantes." />
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+  
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Projets — thesouscote" />
+  <meta property="og:description" content="Découvrez les projets de design et développement web de thesouscote. Sites web, identités visuelles, interfaces utilisateur et créations numériques." />
+  <meta property="og:url" content="https://thesouscote.com/projects.html" />
+  <meta property="og:image" content="assets/logo/Logo-thesouscote-noir.svg" />
+  <meta property="og:locale" content="fr_FR" />
+  <meta property="og:site_name" content="thesouscote" />
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Projets — thesouscote" />
+  <meta name="twitter:description" content="Découvrez les projets de design et développement web de thesouscote." />
+  
+  <!-- Additional SEO -->
+  <meta name="keywords" content="projets, portfolio, design web, développement web, sites web, identité visuelle, UI/UX, créations numériques" />
+  <meta name="author" content="Moke Patrick Armel" />
+  <meta name="robots" content="index, follow" />
+  
+  <!-- Schema.org markup -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "Projets — thesouscote",
+    "url": "https://thesouscote.com/projects.html",
+    "description": "Découvrez les projets de design et développement web de thesouscote.",
+    "mainEntity": {
+      "@type": "ItemList",
+      "itemListElement": [
+        {
+          "@type": "CreativeWork",
+          "position": 1,
+          "name": "Projets de Design",
+          "description": "Sites web, identités visuelles, interfaces utilisateur et créations numériques"
+        }
+      ]
+    }
+  }
+  </script>
+  <script>(function () { try { var t = localStorage.getItem('theme'); if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; document.documentElement.setAttribute('data-theme', t); } catch (e) { } })();</script>
+  <link rel="canonical" href="https://thesouscote.com/projects.html" />
+  <link rel="preload" as="font" type="font/woff2" href="assets/fonts/sf-pro-display-regular.woff2" crossorigin />
+  <link rel="preload" as="font" type="font/woff2" href="assets/fonts/sf-pro-display-bold.woff2" crossorigin />
+  
+  <!-- Preconnect pour les ressources externes -->
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
+  <link rel="stylesheet" href="styles.css?v=5" />
+  <link rel="icon" type="image/svg+xml" href="assets/logo/Logo-thesouscote-noir.svg"
+    media="(prefers-color-scheme: light)" />
+  <link rel="icon" type="image/svg+xml" href="assets/logo/Logo-thesouscote-blanc.svg"
+    media="(prefers-color-scheme: dark)" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.svg" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="thesouscote" />
+</head>
+
+<body data-page="projects">
+  <nav id="site-nav"></nav>
+
+  <div id="breadcrumb" class="breadcrumb"></div>
+
+  <main>
+    <section class="section page">
+      <div class="container">
+        <h2 class="section-title reveal" data-i18n="projects.title">Projets</h2>
+        <div id="projects-grid" class="grid"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer id="site-footer"></footer>
+
+  <div id="cmdk"></div>
+
+  <script src="components.js"></script>
+  <!-- Firebase Integration (App & Firestore) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="script.js?v=7" defer></script>
+</body>
+
+</html>

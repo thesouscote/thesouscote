@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+
+# Pages à ne pas indexer
+Disallow: /admin.html
+Disallow: /firebase-config.js
+Disallow: /draft.html
+Disallow: /collecte.html
+
+# Fichiers de configuration
+Disallow: /*.json$
+Disallow: /*.js$
+
+# Sitemap
+Sitemap: https://thesouscote.com/sitemap.xml

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Point de Collecte — thesouscote | Espace Clients</title>
+  <meta name="description" content="Espace de collecte thesouscote : récupérez vos fichiers et créations sur mesure avec votre code secret. Livraison sécurisée de vos projets design." />
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+  
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Point de Collecte — thesouscote" />
+  <meta property="og:description" content="Récupérez vos fichiers et créations sur mesure avec votre code secret." />
+  <meta property="og:url" content="https://thesouscote.com/collecte.html" />
+  <meta property="og:image" content="assets/logo/Logo-thesouscote-noir.svg" />
+  <meta property="og:locale" content="fr_FR" />
+  <meta property="og:site_name" content="thesouscote" />
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Point de Collecte — thesouscote" />
+  <meta name="twitter:description" content="Récupérez vos fichiers et créations sur mesure." />
+  
+  <!-- Additional SEO -->
+  <meta name="keywords" content="collecte, espace clients, récupération fichiers, créations sur mesure, livraison, thesouscote" />
+  <meta name="author" content="Moke Patrick Armel" />
+  <meta name="robots" content="noindex, follow" />
+  <script>(function(){try{var t=localStorage.getItem('theme');if(!t)t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+  <link rel="preload" as="font" type="font/woff2" href="assets/fonts/sf-pro-display-regular.woff2" crossorigin />
+  <link rel="preload" as="font" type="font/woff2" href="assets/fonts/sf-pro-display-bold.woff2" crossorigin />
+  <link rel="stylesheet" href="styles.css?v=5" />
+  <link rel="icon" type="image/svg+xml" href="assets/logo/Logo-thesouscote-noir.svg" media="(prefers-color-scheme: light)" />
+  <link rel="icon" type="image/svg+xml" href="assets/logo/Logo-thesouscote-blanc.svg" media="(prefers-color-scheme: dark)" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.svg" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="thesouscote" />
+</head>
+<body data-page="collecte">
+  <a href="#main" class="skip-link">Skip to content</a>
+  <nav id="site-nav"></nav>
+
+  <main id="main" class="container">
+    <div class="collecte-container">
+      <div class="collecte-card reveal is-visible">
+        <h2 style="font-size: 28px; font-weight: 700; letter-spacing: -0.03em; margin-bottom: 12px;" id="collecte-title">Espace de Collecte</h2>
+        <p class="section-text" style="font-size: 15px; margin-bottom: 32px; color: var(--text-muted);">Saisissez le code secret de commande qui vous a été transmis pour récupérer vos créations et fichiers finaux.</p>
+        
+        <form id="collecte-form" novalidate aria-labelledby="collecte-title">
+          <label for="collecte-code" class="visually-hidden">Code de collecte</label>
+          <input type="text" id="collecte-code" class="collecte-input" placeholder="CODE-EXEMPLE" autocomplete="off" aria-required="true" aria-describedby="collecte-help" />
+          <span id="collecte-help" class="visually-hidden">Entrez le code secret qui vous a été transmis pour récupérer vos fichiers</span>
+          <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">Accéder à mes créations</button>
+        </form>
+
+        <p id="collecte-status" class="delivery-status" aria-live="polite" role="status"></p>
+
+        <!-- Unlocked Delivery Box -->
+        <div id="delivery-box" class="delivery-box">
+          <div class="delivery-header">
+            <h3 id="delivery-client" class="delivery-title">Créations de Moke</h3>
+            <p id="delivery-date" class="delivery-meta">Livré le 20 mai 2026</p>
+            <p id="delivery-notes" class="section-text" style="font-size: 14px; margin-bottom: 20px; line-height: 1.5; color: var(--text-muted);"></p>
+          </div>
+
+          <h4 style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 12px;">Fichiers prêts au retrait :</h4>
+          <ul id="delivery-files" class="delivery-file-list">
+            <!-- Files injected here -->
+          </ul>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer id="site-footer"></footer>
+
+  <div id="cmdk"></div>
+
+  <script src="components.js"></script>
+  <!-- Firebase Integration (App & Firestore) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
+  <script src="script.js?v=7" defer></script>
+</body>
+</html>

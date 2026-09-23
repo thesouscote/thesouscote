@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>thesouscote</title>
+  <meta name="description" content="Portfolio minimaliste de thesouscote — design épuré inspiré d'Apple." />
+  <meta name="author" content="Moke Patrick Armel" />
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="thesouscote — Portfolio de Designer & Développeur" />
+  <meta property="og:description" content="Portfolio de Moke Patrick Armel — Designer & développeur indépendant spécialisé dans le design minimaliste, UI/UX et le développement web. Création d'expériences simples, élégantes et utiles." />
+  <meta property="og:url" content="https://thesouscote.com/" />
+  <meta property="og:image" content="assets/logo/Logo-thesouscote-noir.svg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:locale" content="fr_FR" />
+  <meta property="og:site_name" content="thesouscote" />
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="thesouscote — Portfolio de Designer & Développeur" />
+  <meta name="twitter:description" content="Portfolio de Moke Patrick Armel — Designer & développeur indépendant spécialisé dans le design minimaliste, UI/UX et le développement web." />
+  <meta name="twitter:image" content="assets/logo/Logo-thesouscote-noir.svg" />
+  
+  <!-- Additional SEO -->
+  <meta name="keywords" content="designer, développeur, portfolio, UI/UX, design minimaliste, web design, Moke Patrick Armel, thesouscote, création de sites web, identité visuelle" />
+  <meta name="author" content="Moke Patrick Armel" />
+  <meta name="robots" content="index, follow" />
+  <link rel="alternate" hreflang="fr" href="https://thesouscote.com/" />
+  
+  <!-- Schema.org markup -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "thesouscote",
+    "url": "https://thesouscote.com/",
+    "description": "Portfolio de Moke Patrick Armel — Designer & développeur indépendant spécialisé dans le design minimaliste, UI/UX et le développement web.",
+    "author": {
+      "@type": "Person",
+      "name": "Moke Patrick Armel",
+      "jobTitle": "Designer & Développeur",
+      "url": "https://thesouscote.com/"
+    },
+    "inLanguage": "fr",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://thesouscote.com/?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
+
+  <script>(function(){try{var t=localStorage.getItem('theme');if(!t)t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+  <link rel="canonical" href="https://thesouscote.com/" />
+  <link rel="preload" as="font" type="font/woff2" href="assets/fonts/sf-pro-display-regular.woff2" crossorigin />
+  <link rel="preload" as="font" type="font/woff2" href="assets/fonts/sf-pro-display-bold.woff2" crossorigin />
+  
+  <!-- Preconnect pour les ressources externes -->
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
+  <link rel="stylesheet" href="styles.css?v=5" />
+  <link rel="icon" type="image/svg+xml" href="assets/logo/Logo-thesouscote-noir.svg" media="(prefers-color-scheme: light)" />
+  <link rel="icon" type="image/svg+xml" href="assets/logo/Logo-thesouscote-blanc.svg" media="(prefers-color-scheme: dark)" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.svg" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="thesouscote" />
+</head>
+<body data-page="home">
+  <a href="#main" class="skip-link">Skip to content</a>
+  <nav id="site-nav"></nav>
+
+  <main id="main">
+    <section class="hero">
+      <div class="container hero-content">
+        <p class="eyebrow reveal" data-i18n="hero.eyebrow">Bonjour, c'est</p>
+        <h1 class="hero-title reveal">thesouscote</h1>
+        <p class="hero-subtitle reveal" data-i18n="hero.subtitle">Designer &amp; développeur. Je crée des expériences simples, élégantes et utiles.</p>
+        <div class="hero-cta reveal">
+          <a href="projects.html" class="btn btn-primary" data-i18n="hero.cta1">Voir mes projets</a>
+          <a href="contact.html" class="btn btn-ghost" data-i18n="hero.cta2">Me contacter →</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer id="site-footer"></footer>
+
+  <script src="components.js"></script>
+  <!-- Firebase Integration (App & Firestore) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="script.js?v=7" defer></script>
+</body>
+</html>

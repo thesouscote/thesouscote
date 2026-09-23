@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact — thesouscote | Travaillons ensemble</title>
+  <meta name="description" content="Contactez Moke Patrick Armel (thesouscote) pour vos projets de design et développement web. Devis gratuit, collaboration créative et projets sur mesure." />
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+  
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Contact — thesouscote" />
+  <meta property="og:description" content="Contactez Moke Patrick Armel pour vos projets de design et développement web. Devis gratuit et collaboration créative." />
+  <meta property="og:url" content="https://thesouscote.com/contact.html" />
+  <meta property="og:image" content="assets/logo/Logo-thesouscote-noir.svg" />
+  <meta property="og:locale" content="fr_FR" />
+  <meta property="og:site_name" content="thesouscote" />
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Contact — thesouscote" />
+  <meta name="twitter:description" content="Contactez Moke Patrick Armel pour vos projets de design et développement web." />
+  
+  <!-- Additional SEO -->
+  <meta name="keywords" content="contact, designer, développeur, devis, collaboration, projets web, design sur mesure, Moke Patrick Armel" />
+  <meta name="author" content="Moke Patrick Armel" />
+  <meta name="robots" content="index, follow" />
+  
+  <!-- Schema.org markup -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ContactPage",
+    "name": "Contact — thesouscote",
+    "url": "https://thesouscote.com/contact.html",
+    "description": "Contactez Moke Patrick Armel pour vos projets de design et développement web.",
+    "mainEntity": {
+      "@type": "Person",
+      "name": "Moke Patrick Armel",
+      "jobTitle": "Designer & Développeur",
+      "email": "thesouscote@gmail.com",
+      "telephone": "+2250778835909",
+      "url": "https://thesouscote.com/",
+      "sameAs": [
+        "https://wa.me/2250778835909",
+        "https://instagram.com/thesouscote",
+        "https://github.com/thesouscote"
+      ],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer service",
+        "email": "thesouscote@gmail.com",
+        "availableLanguage": ["French", "English"]
+      }
+    }
+  }
+  </script>
+  <script>(function(){try{var t=localStorage.getItem('theme');if(!t)t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+  <link rel="canonical" href="https://thesouscote.com/contact.html" />
+  <link rel="preload" as="font" type="font/woff2" href="assets/fonts/sf-pro-display-regular.woff2" crossorigin />
+  <link rel="preload" as="font" type="font/woff2" href="assets/fonts/sf-pro-display-bold.woff2" crossorigin />
+  
+  <!-- Preconnect pour les ressources externes -->
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="styles.css?v=5" />
+  <link rel="icon" type="image/svg+xml" href="assets/logo/Logo-thesouscote-noir.svg" media="(prefers-color-scheme: light)" />
+  <link rel="icon" type="image/svg+xml" href="assets/logo/Logo-thesouscote-blanc.svg" media="(prefers-color-scheme: dark)" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.svg" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="thesouscote" />
+</head>
+<body data-page="contact">
+  <nav id="site-nav"></nav>
+
+  <main>
+    <section class="section page">
+      <div class="container narrow center">
+        <h2 class="section-title reveal" data-i18n="contact.title" id="contact-title">Travaillons ensemble</h2>
+        <p class="section-text reveal" data-i18n="contact.text">Un projet, une idée, ou simplement envie d'échanger ?</p>
+
+        <form id="contact-form-public" class="contact-form reveal" novalidate aria-labelledby="contact-title">
+          <div class="form-row">
+            <div class="form-field">
+              <label for="cf-name" data-i18n="contact.name">Nom</label>
+              <input type="text" id="cf-name" name="name" required autocomplete="name" aria-required="true" />
+            </div>
+            <div class="form-field">
+              <label for="cf-email">Email</label>
+              <input type="email" id="cf-email" name="email" required autocomplete="email" aria-required="true" />
+            </div>
+          </div>
+          <div class="form-field">
+            <label for="cf-subject" data-i18n="contact.subject">Sujet</label>
+            <input type="text" id="cf-subject" name="subject" aria-required="false" />
+          </div>
+          <div class="form-field">
+            <label for="cf-message" data-i18n="contact.message">Message</label>
+            <textarea id="cf-message" name="message" rows="5" required aria-required="true"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary" data-i18n="contact.send">Envoyer →</button>
+          <p id="cf-status" class="contact-status" aria-live="polite" role="status"></p>
+        </form>
+
+        <p class="contact-or reveal" data-i18n="contact.or">— ou sur WhatsApp direct —</p>
+        <a id="contact-whatsapp-link" href="https://wa.me/2250778835909" target="_blank" rel="noopener" class="link reveal">+225 07 78 83 59 09</a>
+
+        <div id="contact-socials" class="socials reveal">
+          <a href="https://instagram.com/" target="_blank" rel="noopener">Instagram</a>
+          <span>·</span>
+          <a href="https://github.com/" target="_blank" rel="noopener">GitHub</a>
+          <span>·</span>
+          <a href="https://twitch.tv/" target="_blank" rel="noopener">Twitch</a>
+          <span>·</span>
+          <a href="https://youtube.com/" target="_blank" rel="noopener">YouTube</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer id="site-footer"></footer>
+
+  <div id="cmdk"></div>
+
+  <script src="components.js"></script>
+  <!-- Firebase Integration (App & Firestore) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="script.js?v=7" defer></script>
+</body>
+</html>

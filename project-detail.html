@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Détails Projet — thesouscote</title>
+  <meta name="description" content="Découvrez les détails de ce projet de design et développement web. Visuels, processus et résultats créatifs." />
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+  
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Détails Projet — thesouscote" />
+  <meta property="og:description" content="Découvrez les détails de ce projet de design et développement web." />
+  <meta property="og:url" content="https://thesouscote.com/project-detail.html" />
+  <meta property="og:image" content="assets/logo/Logo-thesouscote-noir.svg" />
+  <meta property="og:locale" content="fr_FR" />
+  <meta property="og:site_name" content="thesouscote" />
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Détails Projet — thesouscote" />
+  <meta name="twitter:description" content="Découvrez les détails de ce projet de design et développement web." />
+  
+  <!-- Additional SEO -->
+  <meta name="keywords" content="projet, design, développement web, détails, visuels, processus créatif, thesouscote" />
+  <meta name="author" content="Moke Patrick Armel" />
+  <meta name="robots" content="index, follow" />
+  <script>(function(){try{var t=localStorage.getItem('theme');if(!t)t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+  <link rel="preload" as="font" type="font/woff2" href="assets/fonts/sf-pro-display-regular.woff2" crossorigin />
+  <link rel="preload" as="font" type="font/woff2" href="assets/fonts/sf-pro-display-bold.woff2" crossorigin />
+  <link rel="stylesheet" href="styles.css?v=5" />
+  <link rel="icon" type="image/svg+xml" href="assets/logo/Logo-thesouscote-noir.svg" media="(prefers-color-scheme: light)" />
+  <link rel="icon" type="image/svg+xml" href="assets/logo/Logo-thesouscote-blanc.svg" media="(prefers-color-scheme: dark)" />
+  <style>
+    /* Premium Detail Page specific overrides */
+    .project-detail-hero {
+      padding: 80px 0 40px;
+    }
+    .project-header-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .project-tag {
+      display: inline-block;
+      padding: 3px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+    .project-detail-title {
+      font-family: 'SF Pro Display', -apple-system, sans-serif;
+      font-size: 48px;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      margin-bottom: 24px;
+      line-height: 1.1;
+      color: var(--text);
+    }
+    .project-detail-desc {
+      font-size: 18px;
+      line-height: 1.6;
+      color: var(--text-muted);
+      max-width: 720px;
+      margin-bottom: 32px;
+    }
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-top: 48px;
+      margin-bottom: 80px;
+    }
+    @media (max-width: 768px) {
+      .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .gallery-item {
+      width: 100%;
+      overflow: hidden;
+    }
+    .gallery-item img {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: contain;
+    }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s ease;
+      margin-bottom: 32px;
+    }
+    .back-link:hover {
+      color: var(--text);
+    }
+    @media (min-width: 768px) {
+      .project-detail-title {
+        font-size: 56px;
+      }
+    }
+  </style>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.svg" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="thesouscote" />
+</head>
+<body data-page="project-detail">
+  <nav id="site-nav"></nav>
+
+  <main>
+    <article class="project-detail-hero">
+      <div class="container">
+        <div class="project-header-meta">
+          <span id="proj-tag" class="project-tag">Design</span>
+        </div>
+        
+        <h1 id="proj-title" class="project-detail-title">Chargement...</h1>
+        <p id="proj-desc" class="project-detail-desc"></p>
+
+        <div id="proj-meta" class="project-meta-grid"></div>
+        
+        <div id="proj-cta-container">
+          <!-- External Link CTA if any -->
+        </div>
+
+        <div id="proj-gallery" class="gallery-grid">
+          <!-- All extra visuals will be rendered here dynamically -->
+        </div>
+      </div>
+    </article>
+  </main>
+
+  <footer id="site-footer"></footer>
+
+  <div id="cmdk"></div>
+
+  <script src="components.js"></script>
+  <!-- Firebase Integration (App & Firestore) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="script.js?v=7" defer></script>
+</body>
+</html>

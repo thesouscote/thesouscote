@@ -1,0 +1,44 @@
+{
+  "resources": [
+    {
+      "id": "r1",
+      "title": "Logo minimaliste",
+      "description": "Pack de logos vectoriels au style épuré, libres d'utilisation.",
+      "category": "logo",
+      "price": 0,
+      "image": "https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&w=800&q=80",
+      "link": "https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&w=1920&q=100",
+      "tag": "Gratuit"
+    },
+    {
+      "id": "r2",
+      "title": "Logo hand-redrawn",
+      "description": "Refonte manuelle d'un logo existant, livré en SVG haute qualité.",
+      "category": "logo",
+      "price": 32000,
+      "image": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80",
+      "link": "#",
+      "tag": "Sur commande"
+    },
+    {
+      "id": "r3",
+      "title": "Carte graphique éditoriale",
+      "description": "Affiche A3 imprimée, papier mat 250g, signée et numérotée.",
+      "category": "carte",
+      "price": 16500,
+      "image": "https://images.unsplash.com/photo-1541701494587-cb58502866ab?auto=format&fit=crop&w=800&q=80",
+      "link": "#",
+      "tag": "Édition limitée"
+    },
+    {
+      "id": "r4",
+      "title": "Pack de stickers",
+      "description": "Lot de 5 stickers vinyle découpés, résistants à l'eau.",
+      "category": "sticker",
+      "price": 8000,
+      "image": "https://images.unsplash.com/photo-1572375995501-4b0894dbe7d5?auto=format&fit=crop&w=800&q=80",
+      "link": "#",
+      "tag": "Lot"
+    }
+  ]
+}
